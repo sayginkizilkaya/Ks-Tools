@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.88
+// @version      1.89
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -38,12 +38,7 @@
         Genel sigorta sayfası giriş gelişmiş versiyon - türkiye sigorta, quick
         Ek tasarım şekilleri - yön panel şekli vs.
 		---
-        HALLOLDU ~ PARÇALARA GÖRE GRUPLAMA
-        HAZIR ~ İŞÇİLİKLERİ OTO ATAMA AĞIR HASARLARA
-        HALLEDİLDİ ~ PDF DÖNÜŞTÜRME PANELİ- ILOVEPDF GİBİ - JPG KÜÇÜLTME PANELİ- BULKSIZE
-        EKLENDİ GİF :D ~ sağ üste danseden doge - çok önemli
-        ÇOK ZORLAMAYA GEREK YOK ÇALIŞIYOR ~ Resim okuma gelişimi - isme göre -> Hızlı Resim girişi claude fix need
-        HALLOLDU ~ resim kontrol eğer yüklenen dosyalarda ehliyet var mağdur/sigortalı yazmıyorsa paneldek bu alanları buna uygun düzenlesin ama normalde mağdur paneli içerisinde mağdur yazıyorsa yazmalı sadece olmadığında bunu kullanacak
+		JOB DONE - SBM TOPLU EVRAK YÜKLEME
 		---
         MÜMKÜN DEĞİL JS BLOKLAYIP BOZUYOR ~ PİYASA ARAŞTIRMASI YAPIP GELEN EN UYGUN SONUÇLARIN 3 TANESİNİN RESMİNİ ALAN KOD
     */
@@ -3616,33 +3611,71 @@
                     }
                 }
             });
-            if (loc("eks_hasar_yedpar_src.php")) {
-                var araButonu = document.querySelector('input[type="submit"][name="Submit"]');
-                var parcaKoduInput = document.getElementById("PARCA_KODU");
-                if (araButonu && parcaKoduInput) {
-                    var yapistirButon = document.createElement("input");
-                    yapistirButon.type = "button";
-                    yapistirButon.value = "Yapıştır ve Ara";
-                    yapistirButon.className = araButonu.className;
-                    yapistirButon.style.marginLeft = "5px";
-                    yapistirButon.addEventListener("click", function () {
-                        if (navigator.clipboard && navigator.clipboard.readText) {
-                            navigator.clipboard.readText().then(function (text) {
-                                var temizMetin = text.replace(/[^\p{L}\p{N}]/gu, "");//.replace(/O/g, "0");
-                                parcaKoduInput.value = temizMetin;
-                                araButonu.click();
-                                kslog("OTOHASAR SEARCH AND DESTROY", "Aratılan temizlenmiş değer: " + temizMetin);
-                            })
-                            .catch(function (err) {
-                                alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin.");
-                            });
-                        } else {
-                            alert("Tarayıcınız panoya erişimi desteklemiyor.");
-                        }
-                    });
-                    araButonu.parentNode.insertBefore(yapistirButon, araButonu.nextSibling);
-                }
+if (loc("eks_hasar_yedpar_src.php")) {
+    var araButonu = document.querySelector('input[type="submit"][name="Submit"]');
+    var parcaKoduInput = document.getElementById("PARCA_KODU");
+    if (araButonu && parcaKoduInput) {
+
+        // Ortak Yapıştırma ve Arama Fonksiyonu
+        function yapistirVeAra(prefix) {
+            prefix = prefix || "";
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText().then(function (text) {
+                    var temizMetin = text.replace(/[^\p{L}\p{N}]/gu, "").replace(/^0+/, "");
+                    temizMetin = prefix + temizMetin; // Eklenmek istenen takı başa eklendi
+
+                    parcaKoduInput.value = temizMetin;
+                    araButonu.click();
+                    kslog("OTOHASAR SEARCH AND DESTROY", "Aratılan temizlenmiş değer: " + temizMetin);
+                })
+                .catch(function (err) {
+                    alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin.");
+                });
+            } else {
+                alert("Tarayıcınız panoya erişimi desteklemiyor.");
             }
+        }
+
+        // Bütünleşik (Split) Buton Kapsayıcısı (Container)
+        var btnGroup = document.createElement("span");
+        btnGroup.style.display = "inline-flex";
+        btnGroup.style.marginLeft = "5px";
+        btnGroup.style.verticalAlign = "middle";
+
+        // Sol Taraf: Normal Yapıştır ve Ara
+        var solBtn = document.createElement("input");
+        solBtn.type = "button";
+        solBtn.value = "Yapıştır ve Ara";
+        solBtn.className = araButonu.className;
+        solBtn.style.borderTopRightRadius = "0";
+        solBtn.style.borderBottomRightRadius = "0";
+        solBtn.style.borderRight = "1px solid rgba(0, 0, 0, 0.2)";
+        solBtn.style.margin = "0";
+        solBtn.addEventListener("click", function () {
+            yapistirVeAra("");
+        });
+
+        // Sağ Taraf: M+ İle Ara (Başa M Ekler)
+        var sagBtn = document.createElement("input");
+        sagBtn.type = "button";
+        sagBtn.value = "M+";
+        sagBtn.className = araButonu.className;
+        sagBtn.style.borderTopLeftRadius = "0";
+        sagBtn.style.borderBottomLeftRadius = "0";
+        sagBtn.style.margin = "0";
+        sagBtn.style.paddingLeft = "8px";
+        sagBtn.style.paddingRight = "8px";
+        sagBtn.title = "Mercedes için başına M ekleyerek arar";
+        sagBtn.addEventListener("click", function () {
+            yapistirVeAra("M");
+        });
+
+        // Parçaları Birleştir ve Sayfaya Ekle
+        btnGroup.appendChild(solBtn);
+        btnGroup.appendChild(sagBtn);
+        araButonu.parentNode.insertBefore(btnGroup, araButonu.nextSibling);
+    }
+}
 			if (loc("eks_hasar_magdur.php")) {
 				if (typeof window.sb_ederken === 'function') {
 				    const orijinal_sb_ederken = window.sb_ederken;
@@ -4539,6 +4572,7 @@
                                 <button id="b_isc_kaporta" class="btn-pork">KAPORTA İŞÇ.</button>
                                 <button id="b_isc_boya" class="btn-pork">BOYA İŞÇ.</button>
                                 <button id="b_isc_mekanik" class="btn-pork">MEKANİK İŞÇ.</button>
+                                <button id="b_isc_cam" class="btn-pork">CAM İŞÇ.</button>
                                 <button id="b_isc_elektrik" class="btn-pork">ELEKTRİK İŞÇ.</button>
                                 <button id="b_isc_doseme" class="btn-pork">DÖŞEME TRİM İŞÇ.</button>
                                 <div class="ks-tooltip-box">
@@ -4737,6 +4771,7 @@
                 $("b_isc_kaporta").onclick = withLoading($("b_isc_kaporta"), () => hereComesMoney("K1", "KAPORTA İŞÇİLİĞİ", "10", "777"));
                 $("b_isc_boya").onclick = withLoading($("b_isc_boya"), () => hereComesMoney("B1", "BOYA İŞÇİLİĞİ", "10", "777"));
                 $("b_isc_mekanik").onclick = withLoading($("b_isc_mekanik"), () => hereComesMoney("M1", "MEKANİK İŞÇİLİĞİ", "2", "645"));
+                $("b_isc_cam").onclick = withLoading($("b_isc_cam"), () => hereComesMoney("C1", "CAM İŞÇİLİĞİ", "17", "934"));
                 $("b_isc_elektrik").onclick = withLoading($("b_isc_elektrik"), () => hereComesMoney("E1", "ELEKTRİK İŞÇİLİĞİ", "4", "686"));
                 $("b_isc_doseme").onclick = withLoading($("b_isc_doseme"), () => hereComesMoney("D1", "DÖŞEME TRİM İŞÇİLİĞİ", "5", "580"));
 
@@ -5228,7 +5263,7 @@ setInterval(moveSurekliToNewLine, 1000);
                 EHLİYET: ['120', '121', '120', '121'], RUHSAT: ['144', '143', '144', '143'], KTT: ['36', '11'],
                 BEYAN: ['6'], ZABIT: ['5', '22'], POLICE: ['3'], IMZA: ['8'],
                 SICIL: ['40'], SKAYIT: ['12'], GAZETE: ['40'], FAAL: ['65'],
-                IRSALIYE: ['70'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['18'],
+                IRSALIYE: ['70'], NUFUS: ['2'], DIGER: ['12'], ONARIM_SONRASI: ['6'],
                 MUTABAKAT: ['28'], MUVAFAKAT: ['39', '79'], IBRA: ['33'], ALKOL: ['4'],
                 RAYIC: ['49', '184'], TRAMER: ['48', '48', '210', '48'], VERGI: ['9'], MASAK: ['162'], MESLEK: ['12'], KANTAR: [''], MUAYENE:['']
             };
@@ -5256,7 +5291,7 @@ setInterval(moveSurekliToNewLine, 1000);
                 EHLİYET: ['1', '1', '1', '1'], RUHSAT: ['7', '7', '7', '7'], KTT: ['5'],
                 BEYAN: ['6'], ZABIT: ['5', '23', '22', '11'], POLICE: ['3'], IMZA: ['8'],
                 SICIL: [''], SKAYIT: [''], GAZETE: [''], FAAL: [''], IRSALIYE: ['26'], NUFUS: ['2'],
-                DIGER: ['12'], ONARIM_SONRASI: ['6'], MUTABAKAT: ['28'], MUVAFAKAT: ['42'], IBRA: ['33'], ALKOL: ['4'],
+                DIGER: ['12'], ONARIM_SONRASI: ['6'], MUTABAKAT: ['28'], MUVAFAKAT: ['35'], IBRA: ['33'], ALKOL: ['4'],
                 RAYIC: ['36', '38'], TRAMER: ['', '', '', ''], VERGI: ['9'], MASAK: [''], MESLEK: [''], KANTAR: [''], MUAYENE:['']
             };
             //const orient = { ...varsayilan };
@@ -6585,7 +6620,9 @@ setInterval(moveSurekliToNewLine, 1000);
                 { ad: "AK SİGORTA", kod: "004", renk: "#ea580c" },
                 { ad: "ANADOLU", kod: "007", renk: "#005bb7" },
                 { ad: "ANKARA", kod: "009", renk: "#2563eb", prefix: "0000017" },
-                { ad: "ALLIANZ", kod: "011", renk: "#003781" },
+                { ad: "ALLIANZ", kod: "045", renk: "#003781" },
+                { ad: "AXA", kod: "040", renk: "#000080" },
+                { ad: "EMA", kod: "127", renk: "#f97316" },
                 { ad: "CORPUS", kod: "019", renk: "#8b5e34" },
                 { ad: "TÜRKİYE (TS)", kod: "026", renk: "#1e3a8a" },
                 { ad: "MAGDEBURGER", kod: "036", renk: "#1d4ed8" },
@@ -6599,6 +6636,8 @@ setInterval(moveSurekliToNewLine, 1000);
                 { ad: "ATLAS", kod: "108", renk: "#059669" },
                 { ad: "QUİCK", kod: "110", renk: "#d1a401", prefix: "20261" },
                 { ad: "HEPİYİ", kod: "126", renk: "#7c3aed", prefix: "20263" },
+                { ad: "ZURICH", kod: "018", renk: "#2563eb" },
+
             ].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
             const dispatch = (el, ...events) => events.forEach(ev => { el.dispatchEvent(new Event(ev, { bubbles: true })); if (window.jQuery) jQuery(el).trigger(ev); });
             const init = setInterval(() => {
@@ -7438,7 +7477,7 @@ setInterval(moveSurekliToNewLine, 1000);
             const init = () => { if (document.querySelector('table')) { hesapla(); setInterval(hesapla, 3000); } else { setTimeout(init, 500); } }; init();
         }
         // Whatsapp Resim indirme
-        if (WHATSAPP && loc("web.whatsapp.com")) {
+         if (WHATSAPP && loc("web.whatsapp.com")) {
             // ── DOSYA ADI ─────────────────────────────────────────────────────────────
             const getFileName = (ext = 'jpeg') => {
                 const now = new Date();
@@ -7461,114 +7500,6 @@ setInterval(moveSurekliToNewLine, 1000);
                 } catch (e) { linkIndir(url, name); }
             };
             const linkIndir = (url, name) => { const a = document.createElement('a'); a.href = url; a.download = name; a.style.display = 'none'; document.body.appendChild(a); a.click(); setTimeout(() => a.remove(), 1000); };
-            // ── STİLLER ───────────────────────────────────────────────────────────────
-            const style = document.createElement('style');
-            style.textContent = `
-            .ks-dl-wrap { position: relative; display: inline-block; }
-            .ks-dl-btn {
-                position: absolute;
-                top: 10px; right: 10px;
-                width: 32px !important;
-                height: 32px !important;
-                min-width: 32px !important;
-                min-height: 32px !important;
-                max-width: 32px !important;
-                max-height: 32px !important;
-                box-sizing: border-box !important;
-                border-radius: 50%;
-                background: rgba(0,0,0,0.55); border: none;
-                cursor: pointer;
-                display: flex; align-items: center; justify-content: center; opacity: 0;
-                transition: opacity 0.18s, background 0.18s, transform 0.15s;
-                z-index: 9999;
-                padding: 0;
-                backdrop-filter: blur(2px);
-            }
-            .ks-dl-btn svg {
-                width: 24px !important;
-                height: 24px !important;
-                fill: none; pointer-events: none;
-                stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-            }
-            .ks-dl-wrap:hover .ks-dl-btn,
-            .ks-dl-btn:focus { opacity: 1; }
-            .ks-dl-btn:hover { background: rgba(0,0,0,0.8); transform: scale(1.1); }
-            .ks-dl-btn:active { transform: scale(0.95); }
-            .ks-dl-btn.ks-ok { background: rgba(39,174,96,0.85) !important; opacity: 1 !important; }
-            .ks-dl-btn.ks-ok svg { stroke: #fff; }
-        `;
-            document.head.appendChild(style);
-            // ── SVG İKONLAR ──────────────────────────────────────────────────────────
-            const ikonIndir = `<svg viewBox="0 0 24 24"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="3" x2="12" y2="21"/><polyline points="3 9 3 20 21 20 21 9"/></svg>`;
-            const ikonOk = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
-            // ── BUTON OLUŞTUR ─────────────────────────────────────────────────────────
-            const butonEkle = (img) => {
-                if (img.dataset.ksDl) return;
-                img.dataset.ksDl = '1';
-
-                const btn = document.createElement('button');
-                btn.className = 'ks-dl-btn';
-                btn.title = 'Resmi İndir';
-                btn.innerHTML = ikonIndir;
-                btn.style.cssText = `
-            position: fixed;
-            width: 32px;
-            height: 32px;
-            min-width: 32px;
-            min-height: 32px;
-            background: rgba(0,0,0,0.65);
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            padding: 0;
-            backdrop-filter: blur(2px);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.18s, background 0.18s, transform 0.15s;
-        `;
-
-                document.body.appendChild(btn);
-
-                img.addEventListener('mouseenter', () => {
-                    const rect = img.getBoundingClientRect();
-                    btn.style.top = (rect.top + 10) + 'px';
-                    btn.style.right = (window.innerWidth - rect.right + 8) + 'px';
-                    btn.style.opacity = '1';
-                    btn.style.pointerEvents = 'auto';
-                });
-
-                img.addEventListener('mouseleave', (e) => {
-                    if (e.relatedTarget !== btn) {
-                        btn.style.opacity = '0';
-                        btn.style.pointerEvents = 'none';
-                    }
-                });
-
-                btn.addEventListener('mouseleave', () => {
-                    btn.style.opacity = '0';
-                    btn.style.pointerEvents = 'none';
-                });
-
-                btn.addEventListener('click', e => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    const src = img.src || img.dataset.src;
-                    if (!src) return;
-                    const ext = src.includes('.png') ? 'png' : src.includes('.gif') ? 'gif' : src.includes('.webp') ? 'webp' : 'jpeg';
-                    indir(src, getFileName(ext));
-                    btn.innerHTML = ikonOk;
-                    btn.style.background = 'rgba(39,174,96,0.85)';
-                    setTimeout(() => {
-                        btn.innerHTML = ikonIndir;
-                        btn.style.background = 'rgba(0,0,0,0.65)';
-                        btn.style.display = 'none';
-                    }, 2000);
-                });
-            };
             // ── ÇIFT TIKLAMA İLE İNDİR ───────────────────────────────────────────────
             document.addEventListener('dblclick', e => {
                 const img = e.target.closest('img._ao3e') || (e.target.tagName === 'IMG' ? e.target : e.target.querySelector('img'));
@@ -7579,22 +7510,6 @@ setInterval(moveSurekliToNewLine, 1000);
                 const msg = e.target.closest('.message-out, .message-in');
                 if (msg && !['IMG', 'A'].includes(e.target.tagName)) { const btn = msg.querySelector('._ahkm, [role="button"][aria-label*="menu"]'); if (btn) { e.preventDefault(); btn.click(); } }
             }, true);
-            // ── RESİMLERE BUTON EKLE — MutationObserver ile canlı takip ──────────────
-            const IMG_SELECTOR = 'img._ao3e, img[src*="whatsapp"], img[class*="media"]';
-            const taraVeEkle = () => { document.querySelectorAll(IMG_SELECTOR).forEach(img => { if (img.width > 60 && img.height > 60) butonEkle(img); }); };
-            new MutationObserver(muts => {
-                let eklendi = false;
-                muts.forEach(m => {
-                    m.addedNodes.forEach(node => {
-                        if (node.nodeType !== 1) return;
-                        if (node.matches?.(IMG_SELECTOR)) { eklendi = true; }
-                        else if (node.querySelector?.(IMG_SELECTOR)) { eklendi = true; }
-                    });
-                });
-                if (eklendi) setTimeout(taraVeEkle, 100);
-            }).observe(document.body, { childList: true, subtree: true });
-            setTimeout(taraVeEkle, 1000);
-            setInterval(taraVeEkle, 3000);
         }
         // Türkiye Sigorta
         if (TRSIGORTA && loc("hasaroto.turkiyesigorta.com.tr")) {
