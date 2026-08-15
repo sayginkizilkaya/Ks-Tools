@@ -458,8 +458,8 @@
                 const v = style[prop];
                 if (!v) continue;
                 if (v.includes("color(") || v.includes("oklab") || v.includes("oklch")) {
-                    e.style.setProperty(prop, "#ffffff", "important");
-                }
+					e.style.setProperty(prop, "#ffffff", "important");
+				}
             }
             if (style.background?.includes("color(")) { e.style.background = "#333"; }
         });
@@ -472,7 +472,7 @@
         const style = document.createElement('style');
         style.id = 'ks-dynamic-styles';
         style.innerHTML = `
-              @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
             :root { --fontier: 'Exo 2', sans-serif !important; }
             /*body { transition: margin-right 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important; }
             body.ks-panel-open { margin-right: ${config.width} !important; width: calc(100% - ${config.width}) !important; overflow-x: hidden !important; }*/
@@ -689,21 +689,15 @@
             .ks-sb-ipdot { font-size: 14px; line-height: 1; animation: ks-pulse 2.5s ease-in-out infinite; }
             .ks-sb-item.ks-sb-muted { color: ${config.Color}99; font-size: 11px; }
             .ks-sb-item.ks-sb-muted:hover { color: ${config.Color}; background: ${config.themeColor}12; }
- 			@keyframes ks-warn-pulse { 0%, 100% { background: #e74c3c; } 50% { background: #ffb1a9; }
+ 			@keyframes ks-warn-pulse { 0%, 100% { background: #e74c3c; } 50% { background: #ffb1a9; } }
         `;
         document.head.appendChild(style);
     };
     function makeRow(label, valueHtml, opts = {}) {
         const { border = true, labelWidth = '100px' } = opts;
-        return `<div style="
-            display:flex; justify-content:space-between; align-items:flex-start;
-            gap:6px; padding:4px 0; min-width:0; text-align:left;
-            ${border ? 'border-bottom:1px solid #333;' : ''}
-        ">
+        return `<div style=" display:flex; justify-content:space-between; align-items:flex-start; gap:6px; padding:4px 0; min-width:0; text-align:left; ${border ? 'border-bottom:1px solid #333;' : ''} ">
             <span style="flex-shrink:0; width:${labelWidth}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-top:2px; color:#ccc; text-align:left;">${label}</span>
-            <span style="min-width:0; flex:1; display:flex; flex-wrap:wrap; justify-content:flex-end; align-content:flex-start; gap:4px; text-align:right;">
-                ${valueHtml}
-            </span>
+            <span style="min-width:0; flex:1; display:flex; flex-wrap:wrap; justify-content:flex-end; align-content:flex-start; gap:4px; text-align:right;">${valueHtml}</span>
         </div>`;
     }
     function makeFullRow(innerHtml, opts = {}) {
@@ -878,7 +872,6 @@
             const style = document.createElement("style");
             style.id = PANEL_ID + '-style';
             style.innerText = `
-                @import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&display=swap');
                 :root { --fontier: 'Exo 2', sans-serif !important; }
                 #${PANEL_ID} {
                     position: fixed !important; bottom: ${config.bottom} !important; left: ${config.right} !important;
@@ -7441,7 +7434,7 @@ setInterval(moveSurekliToNewLine, 1000);
             panel.style.setProperty('width', config.width);
             const contentArea = document.querySelector('.ks-content');
             let lastState = "";
-            const getPanelTip = () => {
+            const gGetPanelTip = () => {
                 let tip = document.getElementById('ks-dynamic-tooltip');
                 if (!tip) {
                     tip = document.createElement('div');
@@ -7452,7 +7445,7 @@ setInterval(moveSurekliToNewLine, 1000);
                 } return tip;
             };
             const bindTooltips = (container) => {
-                const panelTip = getPanelTip();
+                const panelTip = gGetPanelTip();
                 container.querySelectorAll('[data-tip-head]').forEach(el => {
                     el.addEventListener('mouseenter', () => {
                         panelTip.querySelector('strong').innerText = el.getAttribute('data-tip-head');
