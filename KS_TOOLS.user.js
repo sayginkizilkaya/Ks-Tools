@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.89
+// @version      1.90
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -24,8 +24,8 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/dom-to-image-more/3.3.0/dom-to-image-more.min.js
-// @updateURL    https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
-// @downloadURL  https://github.com/sayginkizilkaya/Ks-Tools/raw/main/KS_TOOLS.user.js
+// @updateURL    https://github.com/SayginKK/KsTools/raw/refs/heads/main/KS_TOOLS.user.js
+// @downloadURL  https://github.com/SayginKK/KsTools/raw/refs/heads/main/KS_TOOLS.user.js
 // ==/UserScript==
 (function () {
     'use strict';
@@ -693,6 +693,23 @@
         `;
         document.head.appendChild(style);
     };
+    function makeRow(label, valueHtml, opts = {}) {
+        const { border = true, labelWidth = '100px' } = opts;
+        return `<div style="
+            display:flex; justify-content:space-between; align-items:flex-start;
+            gap:6px; padding:4px 0; min-width:0; text-align:left;
+            ${border ? 'border-bottom:1px solid #333;' : ''}
+        ">
+            <span style="flex-shrink:0; width:${labelWidth}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-top:2px; color:#ccc; text-align:left;">${label}</span>
+            <span style="min-width:0; flex:1; display:flex; flex-wrap:wrap; justify-content:flex-end; align-content:flex-start; gap:4px; text-align:right;">
+                ${valueHtml}
+            </span>
+        </div>`;
+    }
+    function makeFullRow(innerHtml, opts = {}) {
+        const { border = false } = opts;
+        return `<div style="width:100%; min-width:0; overflow:hidden; padding:4px 0; ${border ? 'border-bottom:1px solid #333;' : ''}">${innerHtml}</div>`;
+    }
     const initPanel = () => {
         if (document.getElementById('ks-master-panel')) return;
         const bodyStyle = `
@@ -2908,8 +2925,14 @@
                 if (kaydetButonu) { kaydetButonu.addEventListener('click', () => { savePageNote(); }); }
                 /* ===== 3. PANEL GÜNCELLEME ===== */
                 function makeBadge(text, color, borderRadius, fontSize = '10px') {
-                    return `<span style=" background:${color}22; color:${color}; border:1px solid ${color}44; padding:1px 6px; border-radius:${borderRadius};
-				font-size:${fontSize}; font-weight:bold; white-space:nowrap; display:inline-block; vertical-align:middle; text-transform:uppercase; ">${text}</span>`;
+                    return `<span style="
+                        background:${color}22; color:${color}; border:1px solid ${color}44;
+                        padding:1px 6px; border-radius:${borderRadius};
+                        font-size:${fontSize}; font-weight:bold;
+                        display:inline-block; white-space:nowrap;
+                        vertical-align:middle; text-transform:uppercase;
+                        box-sizing:border-box;
+                    ">${text}</span>`;
                 }
                 function safeVal(el) { if (!el) return ''; return (el.value !== undefined ? el.value : el.textContent || '').trim(); }
                 function safeDateOf(id) { try { const d = getDate(id); return (d instanceof Date && !isNaN(d)) ? d : null; } catch (_) { return null; } }
@@ -2940,7 +2963,7 @@
                     const dom = gatherDOMRefs();
                     const isTrafik = dom.sigortaSekli?.value === "1";
                     const br = config.borderRadius;
-                    let html = '<table style="width:100%;border-collapse:collapse;font-size:13px;color:white;">';
+                    let html = '<div style="width:100%;min-width:0;font-size:13px;color:white;display:flex;flex-direction:column;">';
                     // ── 1. POLİÇE / HASAR TARİH KONTROLÜ ───────────────────
                     if (ANALIZPANEL_pol && !magdurpanel) {
                         try {
@@ -2971,7 +2994,7 @@
                                 html += `<div class="ks-tooltip-box">Hasar ile Poliçe arasındaki gün farkını kontrol eder.</div></div></td></tr>`;
                             }
                         } catch (err) { kslog("OTOHASAR UPDATEPANEL",('Tarih kontrolü hatası:', err)); }
-                        html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`;
+                        html += makeFullRow(`<hr class="custom-line">`);
                     }
                     // ── 2. SİGORTA ŞEKLİ BADGE ──────────────────────────────
                     let dynamicLabel = (magdurpanel || isTrafik) ? 'Mağdur Araç :' : 'Sigortalı/Kaskolu Araç :';
@@ -2986,7 +3009,7 @@
                             if (magdurpanel || isTrafikSel) dynamicLabel = 'Mağdur Araç :';
                             else if (upText.includes('KASKO')) dynamicLabel = 'Sigortalı Araç :';
                             sigortaBadge = makeBadge(selectedText, sigortaColor, br);
-                            if (ANALIZPANEL_sgs && !magdurpanel) { html += `<tr style="border-bottom:1px solid #333;"><td style="padding:4px 0;">Sigorta Şekli:</td><td style="text-align:right;padding:4px 0;">${sigortaBadge}</td></tr>`; }
+                            if (ANALIZPANEL_sgs && !magdurpanel) { html += makeRow('Sigorta Şekli:', sigortaBadge); }
                         } catch (err) { kslog("OTOHASAR PANEL",('Sigorta şekli hatası:', err)); }
                     }
                     // ── 3. RÜCU ─────────────────────────────────────────────
@@ -2995,7 +3018,7 @@
                             const rucuVar = dom.rucu1?.checked;
                             const rucuYok = dom.rucu0?.checked;
                             const rucuStatus = rucuVar ? makeBadge('VAR 🔴', '#ff4d4d', br) : rucuYok ? makeBadge('YOK 🟢', '#2ecc71', br) : makeBadge('BELİRSİZ 🔘', '#ff9500', br);
-                            html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Rücu:</td><td style="text-align:right;padding:4px 0;">${rucuStatus}</td></tr>`;
+                            html += makeRow('Rücu:', rucuStatus);
                         } catch (err) { kslog("OTOHASAR PANEL",('Rücu hatası:', err)); }
                     }
 
@@ -3004,7 +3027,7 @@
                         try {
                             const pertVar = dom.pert?.checked || false;
                             const pertStatus = pertVar ? makeBadge('VAR 🔴', '#ff4d4d', br) : makeBadge('YOK 🟢', '#2ecc71', br);
-                            html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Pert:</td><td style="text-align:right;padding:4px 0;">${pertStatus}</td></tr>`;
+                            html += makeRow('Pert:', pertStatus);
                         } catch (err) { kslog("OTOHASAR PANEL",('Pert hatası:', err)); }
                     }
                     // ── Şirket/Şahıs Durumu ──────────────────────────────────
@@ -3023,7 +3046,7 @@
                             } else { takto = (durumText === "Tüzel") ? "ŞİRKET" : "BELİRSİZ"; }
                             const sirketStatus = makeBadge(durumText, durumColor, br);
                             const fakto = makeBadge(takto, durumColor, br);
-                            html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Mülkiyet:</td><td style="text-align:right;padding:4px 0;">${sirketStatus} ${fakto}</td></tr>`;
+                            html += makeRow('Mülkiyet:', `${sirketStatus}${fakto}`);
                         } catch (err) { kslog("OTOHASAR PANEL",('Mülkiyet hatası:', err)); }
                     }
                     // ── Ekspertiz Şekli ──────────────────────────────────────
@@ -3033,7 +3056,7 @@
                             let durumText = "BELİRSİZ", durumColor = "#95a5a6";
                             if (ekspertizSelect && ekspertizSelect.value !== "0") { durumText = ekspertizSelect.options[ekspertizSelect.selectedIndex].text; durumColor = (durumText === "Uzaktan") ? "#3498db" : "#e67e22"; }
                             const ekspertizBadge = makeBadge(durumText, durumColor, br);
-                            html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Ekspertiz Şekli:</td><td style="text-align:right;padding:4px 0;">${ekspertizBadge}</td></tr>`;
+                            html += makeRow('Ekspertiz Şekli:', ekspertizBadge);
                         } catch (err) { kslog("OTOHASAR PANEL",('Ekspertiz şekli hatası:', err)); }
                     }
                     // ── 5. İHBAR TÜRÜ & HASAR ŞEKLİ ────────────────────────
@@ -3043,16 +3066,14 @@
                             if (dom.ihbarEl && dom.ihbarEl.value !== '' && dom.ihbarEl.value !== '-1') {
                                 const txt = dom.ihbarEl.options[dom.ihbarEl.selectedIndex]?.text || '';
                                 const color = IHBAR_COLORS[dom.ihbarEl.value] || '#bdc3c7';
-                                html += `<tr style="border-bottom:1px solid #333;"><td style="padding:4px 0;white-space:nowrap;width:100px;">İhbar Türü:</td>
-							<td style="text-align:right;padding:4px 0;white-space:nowrap;">${makeBadge(txt, color, br)}</td></tr>`;
+                                html += makeRow('İhbar Türü:', makeBadge(txt, color, br));
                             }
                         } catch (err) { kslog("OTOHASAR PANEL",('İhbar hatası:', err)); }
                         try {
                             if (dom.hasarEl && dom.hasarEl.value !== '' && dom.hasarEl.value !== '-1') {
                                 const txt = dom.hasarEl.options[dom.hasarEl.selectedIndex]?.text || '', v = dom.hasarEl.value;
                                 const color = ['1', '5', '18'].includes(v) ? '#ff4d4d' : v === '28' ? '#9c88ff' : '#00d4ff';
-                                html += `<tr style="border-bottom:1px solid #333;"><td style="padding:4px 0;white-space:nowrap;width:100px;">Hasar Şekli:</td>
-                                <td style="text-align:right;padding:4px 0;white-space:nowrap;">${makeBadge(txt, color, br)}</td></tr>`;
+                                html += makeRow('Hasar Şekli:', makeBadge(txt, color, br));
                             }
                         } catch (err) { kslog("OTOHASAR PANEL",('Hasar şekli hatası:', err)); }
                     }
@@ -3064,60 +3085,65 @@
                                 const isYetkili = dom.yetkiliEl?.checked, isAnlasmali = dom.anlasmaliEl?.checked;
                                 const turBadge = makeBadge(isYetkili ? 'Yetkili' : 'Yetkisiz', isYetkili ? '#00d4ff' : '#ff9500', br);
                                 const anlasmaBadge = makeBadge(isAnlasmali ? 'Anlaşmalı' : 'Anlaşmasız', isAnlasmali ? '#00d4ff' : '#ff9500', br);
-                                html += `<tr style="border-bottom:1px solid #333;"><td style="white-space:nowrap;width:100px;">Servis Tipi:</td>
-							<td style="text-align:right;padding:4px 0;white-space:nowrap;">${turBadge} <span style="color:#444;margin:0 1px;">|</span> ${anlasmaBadge}</td></tr>`;
+                                html += makeRow('Servis Tipi:', `${turBadge}<span style="color:#444;align-self:center;">|</span>${anlasmaBadge}`);
                             }
                         } catch (err) { kslog("OTOHASAR PANEL",('Servis tipi hatası:', err)); }
-                        html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`;
+                        html += makeFullRow(`<hr class="custom-line">`);
                     }
                     // ── 7. ALAN LİSTESİ (Servis, Tramer, Sigortalı, Araç) ───
-                    const tahminiHasar = safeNum('TAHMINI_HASAR');
-                    let hasPiyasa = safeNum(magdurpanel ? 'PIYASA' : 'HAS_PIYASA');
-                    if (isTrafik && !magdurpanel && window.MAGDUR_DATA.isLoaded && window.MAGDUR_DATA.mgPIYASA) { hasPiyasa = parseFloat(window.MAGDUR_DATA.mgPIYASA.replace(/\./g, '').replace(',', '.')) || 0; }
-                    const ssTahmini = safeNum('SS_TAHMINI_HASAR');
-                    const formatTramer = str => { if (!str?.toString().trim()) return '-'; return str.toString().replace(/\s/g, '').replace(/(.{3})/g, '$1 ').trim(); };
-                    const formatText = (str, limit = 25) => { if (!str) return '-'; const clean = str.replace(/^\(\s*.*?\s*\)\s*/, ''); return clean.length > limit ? clean.substring(0, limit) + '…' : clean; };
-                    const fields = [
-                        { label: 'Servis :', id: 'SERVIS_ADI', condition: ANALIZPANEL_srad && !magdurpanel },
-                        { label: 'Tramer :', id: 'TRAMER_IHBAR_NO' && 'TRAMER_DOSYA_NO', condition: ANALIZPANEL_tra && !magdurpanel },
-                        { label: (magdurpanel || isTrafik) ? 'Mağdur :' : 'Sigortalı :', id: (magdurpanel || isTrafik) ? 'MAGDUR_AD_SOYAD' : 'HAS_ARAC_SAHIBI', condition: ANALIZPANEL_sad },
-                        { label: dynamicLabel, id: (magdurpanel || isTrafik) ? 'MODEL_ADI' : 'HAS_MODEL_ADI', condition: ANALIZPANEL_aad },
-                    ];
-                    fields.forEach(f => {
-                        if (!f.condition) return;
-                        try {
-                            let raw = '';
-                            const el = document.getElementById(f.id) || document.getElementsByName(f.id)[0];
-                            if (magdurpanel && f.id === 'MAGDUR_AD_SOYAD') { const ad = document.getElementById('MAGDUR_AD')?.value || '', soyad = document.getElementById('MAGDUR_SOYAD')?.value || ''; raw = `${ad} ${soyad}`.trim(); }
-                            else if (isTrafik && !magdurpanel && window.MAGDUR_DATA.isLoaded) {
-                                if (f.id === 'MODEL_ADI' || f.id === 'HAS_MODEL_ADI') {
-                                    raw = window.MAGDUR_DATA.mgMODEL_ADI || '';
-                                } else if (f.id === 'MAGDUR_AD_SOYAD') {
-                                    const ad = window.MAGDUR_DATA.mgMAGDUR_AD || '', soyad = window.MAGDUR_DATA.mgMAGDUR_SOYAD || ''; raw = `${ad} ${soyad}`.trim();
-                                } else if (f.id === 'HAS_ARAC_SAHIBI') { raw = window.MAGDUR_DATA.mgMODEL_ADI || ''; }
-                            }
-                            else if (isTrafik) {
-                                const marker = document.querySelector('input[name="MAGDUR_MARKA_ID"]'), targetRow = marker?.parentElement?.closest('tr');
-                                if (targetRow) {
-                                    const cells = targetRow.querySelectorAll('td.acik');
-                                    if (f.id.includes('MODEL_ADI')) { raw = cells[2]?.innerText || ''; }
-                                    else if (f.id === 'MAGDUR_AD_SOYAD') { raw = cells[6]?.innerText || ''; }
-                                    else if (f.id === 'HAS_ARAC_SAHIBI') { raw = cells[2]?.innerText || ''; }
-                                }
-                            }
-                            if (!raw && el) { raw = safeVal(el); }
-                            let status = raw !== '' ? '✅' : '❌', valStr = '-', color = 'white';
-                            if (raw !== '') {
-                                if (['HAS_PIYASA', 'PIYASA'].includes(f.id)) { valStr = hasPiyasa.toLocaleString('tr-TR'); status = hasPiyasa < 1000 ? '⚠️' : '✅'; color = hasPiyasa < 1000 ? '#ff9500' : '#00d4ff'; }
-                                else if (f.id === 'TRAMER_IHBAR_NO') { valStr = formatTramer(raw); }
-                                else if (['SERVIS_ADI', 'HAS_ARAC_SAHIBI', 'MAGDUR_AD_SOYAD', 'HAS_MODEL_ADI', 'MODEL_ADI'].includes(f.id)) { valStr = formatText(raw, 22); status = ' '; }
-                                else { valStr = raw; }
-                            }
-                            html += `<tr><td style="color:white;padding:4px 0;white-space:nowrap;">${f.label}</td><td style="text-align:right;color:${color};font-weight:bold;">${valStr}<span style="margin-left:5px;">${status}</span></td></tr>`;
-                        } catch (err) { kslog("OTOHASAR PANEL",(`Alan hatası (${f.id}):`, err)); }
-                    });
+					const tahminiHasar = safeNum('TAHMINI_HASAR');
+					let hasPiyasa = safeNum(magdurpanel ? 'PIYASA' : 'HAS_PIYASA');
+					if (isTrafik && !magdurpanel && window.MAGDUR_DATA.isLoaded && window.MAGDUR_DATA.mgPIYASA) { hasPiyasa = parseFloat(window.MAGDUR_DATA.mgPIYASA.replace(/\./g, '').replace(',', '.')) || 0; }
+					const ssTahmini = safeNum('SS_TAHMINI_HASAR');
+					const formatTramer = str => { if (!str?.toString().trim()) return '-'; return str.toString().replace(/\s/g, '').replace(/(.{3})/g, '$1 ').trim(); };
+					// formatText artık kesmiyor, tam metni döndürüyor:
+					const formatText = (str) => { if (!str) return '-'; return str.replace(/^\(\s*.*?\s*\)\s*/, '').trim(); };
+
+					const fields = [
+					    { label: 'Servis :', id: 'SERVIS_ADI', condition: ANALIZPANEL_srad && !magdurpanel },
+					    { label: 'Tramer :', id: 'TRAMER_IHBAR_NO' && 'TRAMER_DOSYA_NO', condition: ANALIZPANEL_tra && !magdurpanel },
+					    { label: (magdurpanel || isTrafik) ? 'Mağdur :' : 'Sigortalı :', id: (magdurpanel || isTrafik) ? 'MAGDUR_AD_SOYAD' : 'HAS_ARAC_SAHIBI', condition: ANALIZPANEL_sad },
+					    { label: dynamicLabel, id: (magdurpanel || isTrafik) ? 'MODEL_ADI' : 'HAS_MODEL_ADI', condition: ANALIZPANEL_aad },
+					];
+
+					fields.forEach(f => {
+					    if (!f.condition) return;
+					    try {
+					        let raw = '';
+					        const el = document.getElementById(f.id) || document.getElementsByName(f.id)[0];
+					        if (magdurpanel && f.id === 'MAGDUR_AD_SOYAD') { const ad = document.getElementById('MAGDUR_AD')?.value || '', soyad = document.getElementById('MAGDUR_SOYAD')?.value || ''; raw = `${ad} ${soyad}`.trim(); }
+					        else if (isTrafik && !magdurpanel && window.MAGDUR_DATA.isLoaded) {
+					            if (f.id === 'MODEL_ADI' || f.id === 'HAS_MODEL_ADI') {
+					                raw = window.MAGDUR_DATA.mgMODEL_ADI || '';
+					            } else if (f.id === 'MAGDUR_AD_SOYAD') {
+					                const ad = window.MAGDUR_DATA.mgMAGDUR_AD || '', soyad = window.MAGDUR_DATA.mgMAGDUR_SOYAD || ''; raw = `${ad} ${soyad}`.trim();
+					            } else if (f.id === 'HAS_ARAC_SAHIBI') { raw = window.MAGDUR_DATA.mgMODEL_ADI || ''; }
+					        }
+					        else if (isTrafik) {
+					            const marker = document.querySelector('input[name="MAGDUR_MARKA_ID"]'), targetRow = marker?.parentElement?.closest('tr');
+					            if (targetRow) {
+					                const cells = targetRow.querySelectorAll('td.acik');
+					                if (f.id.includes('MODEL_ADI')) { raw = cells[2]?.innerText || ''; }
+					                else if (f.id === 'MAGDUR_AD_SOYAD') { raw = cells[6]?.innerText || ''; }
+					                else if (f.id === 'HAS_ARAC_SAHIBI') { raw = cells[2]?.innerText || ''; }
+					            }
+					        }
+					        if (!raw && el) { raw = safeVal(el); }
+					        let status = raw !== '' ? '✅' : '❌', valStr = '-', color = 'white';
+					        if (raw !== '') {
+					            if (['HAS_PIYASA', 'PIYASA'].includes(f.id)) { valStr = hasPiyasa.toLocaleString('tr-TR'); status = hasPiyasa < 1000 ? '⚠️' : '✅'; color = hasPiyasa < 1000 ? '#ff9500' : '#00d4ff'; }
+					            else if (f.id === 'TRAMER_IHBAR_NO') { valStr = formatTramer(raw); }
+					            else if (['SERVIS_ADI', 'HAS_ARAC_SAHIBI', 'MAGDUR_AD_SOYAD', 'HAS_MODEL_ADI', 'MODEL_ADI'].includes(f.id)) { valStr = formatText(raw); status = ''; }
+					            else { valStr = raw; }
+					        }
+					        html += makeRow(
+					            f.label,
+					            `<span style="color:${color};font-weight:bold;word-break:break-word;text-align:right;">${valStr}</span>${status ? `<span style="margin-left:5px;flex-shrink:0;">${status}</span>` : ''}`
+					        );
+					    } catch (err) { kslog("OTOHASAR PANEL",(`Alan hatası (${f.id}):`, err)); }
+					});
                     // ── 8. MUALLAK / PİYASA / EKSPER ORAN TABLOSU ───────────
-                    if ((ANALIZPANEL_mull || ANALIZPANEL_ryc || ANALIZPANEL_rycorn) && !magdurpanel) { html += `<tr><td colspan="2"><hr class="custom-line"></td></tr>`; }
+                    if ((ANALIZPANEL_mull || ANALIZPANEL_ryc || ANALIZPANEL_rycorn) && !magdurpanel) { html += makeFullRow(`<hr class="custom-line">`); }
                     const oran = hasPiyasa > 0 ? (tahminiHasar / hasPiyasa) * 100 : 0;
                     let durumMetni = 'BELİRSİZ', durumColor = '#aaa';
                     if (hasPiyasa >= 1000) {
@@ -3126,33 +3152,31 @@
                         else { durumMetni = '🔴 %60 ÜZERİ'; durumColor = '#ff4d4d'; }
                     }
                     const pertUyari = (oran >= 60 && !dom.pert?.checked) ? `<div style="color:#ff4d4d;font-weight:bold;font-size:10px;animation:ksBlink 1s infinite;margin-top:2px;text-align:right;">⚠️ DİKKAT: PERT SEÇİLMELİ!</div>` : '';
-                    html += `<style>@keyframes ksBlink{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}</style> <table style="width:100%;border-collapse:collapse;font-size:12px;color:white;line-height:1.2;">`;
+                    html += `<style>@keyframes ksBlink{0%{opacity:1}50%{opacity:0.3}100%{opacity:1}}</style>`;
+                    html += `<div style="width:100%;min-width:0;font-size:12px;color:white;line-height:1.2;display:flex;flex-direction:column;">`;
                     if (ANALIZPANEL_mull && !magdurpanel) {
-                        html += `<tr><td style="width:100px;padding:4px 0;">Sigorta Muallak:</td><td style="text-align:right;padding:4px 0;"><b>${ssTahmini.toLocaleString()} ₺</b></td></tr>`;
-                    }
+                        html += makeRow('Sigorta Muallak:', `<b>${ssTahmini.toLocaleString()} ₺</b>`); }
                     if (ANALIZPANEL_ryc) {
-                        html += `<tr style="border-top:1px solid #333;"><td style="width:100px;padding:4px 0;">Piyasa / Rayiç :</td><td style="text-align:right;padding:4px 0;"><b style="color:#00d4ff">${hasPiyasa.toLocaleString('tr-TR')} ₺</b></td></tr>`;
-                    }
+                        html += makeRow('Piyasa / Rayiç :', `<b style="color:#00d4ff">${hasPiyasa.toLocaleString('tr-TR')} ₺</b>`, { border: false });
+                        html += makeFullRow('', { border: false }); }
+
                     if (ANALIZPANEL_rycorn && !magdurpanel) {
-                        html += `<tr>
-                        <td style="width:100px;padding:4px 0;">Eksper Muallak:</td><td style="text-align:right;padding:4px 0;"><b style="color:${durumColor}">${tahminiHasar.toLocaleString()} ₺</b>${makeBadge(durumMetni, durumColor, br)}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2" style="padding:4px 0;">
-                            <div class="ks-tooltip-container" style="width:100%;">
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <div style="background:#222;flex-grow:1;height:6px;border-radius:4px;overflow:hidden;border:1px solid #444;">
+                        html += makeRow( 'Eksper Muallak:', `<b style="color:${durumColor}">${tahminiHasar.toLocaleString()} ₺</b> ${makeBadge(durumMetni, durumColor, br)}` );
+                        html += makeFullRow(`
+                            <div class="ks-tooltip-container" style="width:100%;min-width:0;">
+                                <div style="display:flex;align-items:center;gap:6px;min-width:0;">
+                                    <div style="background:#222;flex-grow:1;flex-shrink:1;min-width:0;height:6px;border-radius:4px;overflow:hidden;border:1px solid #444;">
                                         <div style="background:${durumColor};width:${Math.min(oran, 100)}%;height:100%;"></div>
                                     </div>
-                                    <span style="color:${config.Color};font-size:12px;min-width:25px;">%${oran.toFixed(0)}</span>
+                                    <span style="color:${config.Color};font-size:12px;flex-shrink:0;min-width:25px;">%${oran.toFixed(0)}</span>
                                 </div>
                                 ${pertUyari}
                                 <div class="ks-tooltip-box">Eksper hasar tutarının piyasa değerine oranını gösterir.</div>
                             </div>
-                        </td>
-                    </tr>`;
+                        `);
                     }
-                    html += `</table>`;
+
+                    html += `</div>`;
                     // ── DOM YAZ ─────────────────────────────────────────────
                     if (dom.panelContent) { dom.panelContent.innerHTML = html; }
                     // ── 9. BUTON OLAY DİNLEYİCİLERİ ────────────────────────
@@ -3501,7 +3525,7 @@
             };
             document.readyState == 'complete' ? f() : window.addEventListener('load', f);
         }
-        // Klasör Aç butonu + Tramer Dosya No alanı + Kati Rapor indirme
+        // Genel ufak gereksinimler / Klasör Aç butonu + Tramer Dosya No alanı + Kati Rapor indirme + Not - Sbm giriş kontrol
         if (OTOFILE && loc("otohasar")) {
             const ayIsimleri = { "01": "1. Ocak", "02": "2. Şubat", "03": "3. Mart", "04": "4. Nisan", "05": "5. Mayıs", "06": "6. Haziran", "07": "7. Temmuz", "08": "8. Ağustos", "09": "9. Eylül", "10": "10. Ekim", "11": "11. Kasım", "12": "12. Aralık" };
             function turkceBuyukHarf(metin) { return metin.toString().replace(/i/g, "İ").replace(/ı/g, "I").replace(/ş/g, "Ş").replace(/ç/g, "Ç").replace(/ğ/g, "Ğ").replace(/ü/g, "Ü").replace(/ö/g, "Ö").toUpperCase().trim(); }
@@ -3556,10 +3580,7 @@
                             });
                         }
                         if (selectSigorta && selectSigorta.value === "2") { butonuEkle(); }
-                        else {
-                            const kontrolArasi = setInterval(function () { if (magdurDataHazir()) { butonuEkle(); clearInterval(kontrolArasi); } }, 300);
-                            setTimeout(function () { clearInterval(kontrolArasi); }, 15000);
-                        }
+                        else { const kontrolArasi = setInterval(function () { if (magdurDataHazir()) { butonuEkle(); clearInterval(kontrolArasi); } }, 300); setTimeout(function () { clearInterval(kontrolArasi); }, 15000); }
                     }
                 }
                 // ----- 2) TRAMER DOSYA NO ALANI EKLEME -----
@@ -3611,71 +3632,57 @@
                     }
                 }
             });
-if (loc("eks_hasar_yedpar_src.php")) {
-    var araButonu = document.querySelector('input[type="submit"][name="Submit"]');
-    var parcaKoduInput = document.getElementById("PARCA_KODU");
-    if (araButonu && parcaKoduInput) {
-
-        // Ortak Yapıştırma ve Arama Fonksiyonu
-        function yapistirVeAra(prefix) {
-            prefix = prefix || "";
-            if (navigator.clipboard && navigator.clipboard.readText) {
-                navigator.clipboard.readText().then(function (text) {
-                    var temizMetin = text.replace(/[^\p{L}\p{N}]/gu, "").replace(/^0+/, "");
-                    temizMetin = prefix + temizMetin; // Eklenmek istenen takı başa eklendi
-
-                    parcaKoduInput.value = temizMetin;
-                    araButonu.click();
-                    kslog("OTOHASAR SEARCH AND DESTROY", "Aratılan temizlenmiş değer: " + temizMetin);
-                })
-                .catch(function (err) {
-                    alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin.");
-                });
-            } else {
-                alert("Tarayıcınız panoya erişimi desteklemiyor.");
-            }
-        }
-
-        // Bütünleşik (Split) Buton Kapsayıcısı (Container)
-        var btnGroup = document.createElement("span");
-        btnGroup.style.display = "inline-flex";
-        btnGroup.style.marginLeft = "5px";
-        btnGroup.style.verticalAlign = "middle";
-
-        // Sol Taraf: Normal Yapıştır ve Ara
-        var solBtn = document.createElement("input");
-        solBtn.type = "button";
-        solBtn.value = "Yapıştır ve Ara";
-        solBtn.className = araButonu.className;
-        solBtn.style.borderTopRightRadius = "0";
-        solBtn.style.borderBottomRightRadius = "0";
-        solBtn.style.borderRight = "1px solid rgba(0, 0, 0, 0.2)";
-        solBtn.style.margin = "0";
-        solBtn.addEventListener("click", function () {
-            yapistirVeAra("");
-        });
-
-        // Sağ Taraf: M+ İle Ara (Başa M Ekler)
-        var sagBtn = document.createElement("input");
-        sagBtn.type = "button";
-        sagBtn.value = "M+";
-        sagBtn.className = araButonu.className;
-        sagBtn.style.borderTopLeftRadius = "0";
-        sagBtn.style.borderBottomLeftRadius = "0";
-        sagBtn.style.margin = "0";
-        sagBtn.style.paddingLeft = "8px";
-        sagBtn.style.paddingRight = "8px";
-        sagBtn.title = "Mercedes için başına M ekleyerek arar";
-        sagBtn.addEventListener("click", function () {
-            yapistirVeAra("M");
-        });
-
-        // Parçaları Birleştir ve Sayfaya Ekle
-        btnGroup.appendChild(solBtn);
-        btnGroup.appendChild(sagBtn);
-        araButonu.parentNode.insertBefore(btnGroup, araButonu.nextSibling);
-    }
-}
+			if (loc("eks_hasar_yedpar_src.php")) {
+			    var araButonu = document.querySelector('input[type="submit"][name="Submit"]');
+			    var parcaKoduInput = document.getElementById("PARCA_KODU");
+			    if (araButonu && parcaKoduInput) {
+			        // Ortak Yapıştırma ve Arama Fonksiyonu
+			        function yapistirVeAra(prefix) {
+			            prefix = prefix || "";
+			            if (navigator.clipboard && navigator.clipboard.readText) {
+			                navigator.clipboard.readText().then(function (text) {
+			                    var temizMetin = text.replace(/[^\p{L}\p{N}]/gu, "").replace(/^0+/, "");
+			                    temizMetin = prefix + temizMetin;
+			                    parcaKoduInput.value = temizMetin;
+			                    araButonu.click();
+			                    kslog("OTOHASAR SEARCH AND DESTROY", "Aratılan temizlenmiş değer: " + temizMetin);
+			                })
+			                .catch(function (err) { alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin."); });
+			            } else { alert("Tarayıcınız panoya erişimi desteklemiyor."); }
+			        }
+			        // Bütünleşik (Split) Buton Kapsayıcısı (Container)
+			        var btnGroup = document.createElement("span");
+			        btnGroup.style.display = "inline-flex";
+			        btnGroup.style.marginLeft = "5px";
+			        btnGroup.style.verticalAlign = "middle";
+			        // Sol Taraf: Normal Yapıştır ve Ara
+			        var solBtn = document.createElement("input");
+			        solBtn.type = "button";
+			        solBtn.value = "Yapıştır ve Ara";
+			        solBtn.className = araButonu.className;
+			        solBtn.style.borderTopRightRadius = "0";
+			        solBtn.style.borderBottomRightRadius = "0";
+			        solBtn.style.borderRight = "1px solid rgba(0, 0, 0, 0.2)";
+			        solBtn.style.margin = "0";
+			        solBtn.addEventListener("click", function () { yapistirVeAra(""); });
+			        // Sağ Taraf: M+ İle Ara (Başa M Ekler)
+			        var sagBtn = document.createElement("input");
+			        sagBtn.type = "button";
+			        sagBtn.value = "M+";
+			        sagBtn.className = araButonu.className;
+			        sagBtn.style.borderTopLeftRadius = "0";
+			        sagBtn.style.borderBottomLeftRadius = "0";
+			        sagBtn.style.margin = "0";
+			        sagBtn.style.paddingLeft = "8px";
+			        sagBtn.style.paddingRight = "8px";
+			        sagBtn.title = "Mercedes için başına M ekleyerek arar";
+			        sagBtn.addEventListener("click", function () { yapistirVeAra("M"); });
+			        // Parçaları Birleştir ve Sayfaya Ekle
+			        btnGroup.appendChild(solBtn);
+			        btnGroup.appendChild(sagBtn);
+			        araButonu.parentNode.insertBefore(btnGroup, araButonu.nextSibling);
+			    }
+			}
 			if (loc("eks_hasar_magdur.php")) {
 				if (typeof window.sb_ederken === 'function') {
 				    const orijinal_sb_ederken = window.sb_ederken;
@@ -3686,9 +3693,7 @@ if (loc("eks_hasar_yedpar_src.php")) {
 				} else {
 				    document.addEventListener('click', function(e) {
 				        const target = e.target;
-				        if (target && target.type === 'button' && target.value.trim() === 'KAYDET') { const plakaInput = document.getElementById('PLAKA1');
-				            if (plakaInput) { let val = plakaInput.value.trim(); if (val.length === 1) { plakaInput.value = '0' + val; } }
-				        }
+				        if (target && target.type === 'button' && target.value.trim() === 'KAYDET') { const plakaInput = document.getElementById('PLAKA1'); if (plakaInput) { let val = plakaInput.value.trim(); if (val.length === 1) { plakaInput.value = '0' + val; } } }
 				    }, true);
 				}
 			}
@@ -3759,13 +3764,23 @@ if (loc("eks_hasar_yedpar_src.php")) {
 				        iframe.src = href.startsWith('http') ? href : BASE + href;
 				        document.body.appendChild(iframe);
 				        setTimeout(() => iframe.remove(), 15000);
-
 				        btn.classList.add('ok'); btn.innerHTML = ICON.ok; btn.title = 'İndirildi';
 				    } catch (e) { kslog("OTOHASAR RAPOR",(" :",e)); btn.classList.add('err'); btn.innerHTML = ICON.err; btn.title = 'Hata: ' + e.message; } finally { btn.disabled = false; }
 				}
 				tara();
 				new MutationObserver(tara).observe(document.body, { childList: true, subtree: true });
 			}
+			// nokta virgül düzeltme
+			const targets = ['BIRIM_FIYAT_GERCEK', 'BIRIM_FIYAT_TALEP'];
+			function turn_dot() {
+			    targets.forEach(id => {
+			        document.querySelectorAll(`#${id}, [name="${id}"]`).forEach(el => {
+			            if (!el.dataset.cr) { el.dataset.cr = '1'; el.addEventListener('input', function() { if (this.value.includes(',')) { const { selectionStart: s, selectionEnd: e } = this; this.value = this.value.replace(/,/g, '.'); this.setSelectionRange(s, e); } }); }
+			        });
+			    });
+			}
+			turn_dot();
+			new MutationObserver(turn_dot).observe(document.body, { childList: true, subtree: true });
         }
         // SBM oto doldurma sistemi
         if (ONSBM && loc("sdata_edit.php")) {
@@ -5990,6 +6005,37 @@ setInterval(moveSurekliToNewLine, 1000);
             // ── ANA DÖNGÜ ─────────────────────────────────────────────────────────────
             const start = () => { initToolbar(); injectRowPanels(); fixPreviews(); updateProgressArea(); initUploadObserver(); hookFileUploadProgress(); };
             setTimeout(start, 100); setInterval(start, 1000);
+            // ── extra problems ─────────────────────────────────────────────────────────────
+            function pick_damage() {
+                const selects = document.querySelectorAll('select[name^="kacinci_hasar_"]');
+                if (!selects.length || document.getElementById('auto-select-hasar-btn')) return;
+                const btn = document.createElement('button');
+                btn.id = 'auto-select-hasar-btn';
+                btn.textContent = '⚡ 1. Hasarı Oto Seç';
+                Object.assign(btn.style, {
+                    position: 'fixed', top: '25px', right: '10px', zIndex: '999999',
+                    padding: '5px 8px', backgroundColor: '#007bff',
+                    color: '#fff', border: 'none', borderRadius: '6px',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                    cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', fontFamily: 'sans-serif',
+                    transition: 'background-color 0.2s, transform 0.1s'
+                });
+                btn.onmouseenter = () => { btn.style.backgroundColor = '#0056b3'; }
+                btn.onmouseleave = () => { btn.style.backgroundColor = '#007bff'; }
+                btn.onmousedown = () => { btn.style.transform = 'scale(0.95)'; }
+                btn.onmouseup = () => { btn.style.transform = 'scale(1)'; }
+                btn.onclick = () => {
+                    const targets = document.querySelectorAll('select[name^="kacinci_hasar_"]');
+                    targets.forEach(select => { select.value = "1"; select.dispatchEvent(new Event('change', { bubbles: true })); select.dispatchEvent(new Event('input', { bubbles: true })); });
+                    const originalText = btn.textContent;
+                    btn.textContent = `✓ ${targets.length} Adet Seçildi!`;
+                    btn.style.backgroundColor = '#28a745';
+                    setTimeout(() => { btn.textContent = originalText; btn.style.backgroundColor = '#007bff'; }, 2000);
+                };
+                document.body.appendChild(btn);
+            }
+            new MutationObserver(pick_damage).observe(document.body, { childList: true, subtree: true });
+            if (document.readyState === 'loading') { window.addEventListener('DOMContentLoaded', pick_damage); } else { pick_damage(); }
         }
         // Resim yükleme kontrolü
         if (RESIM && loc("otohasar") && (loc("eks_hasar_evrak_foto_list.php") || loc("eks_hasar_foto_list.php"))) {
@@ -6622,10 +6668,11 @@ setInterval(moveSurekliToNewLine, 1000);
                 { ad: "ANKARA", kod: "009", renk: "#2563eb", prefix: "0000017" },
                 { ad: "ALLIANZ", kod: "045", renk: "#003781" },
                 { ad: "AXA", kod: "040", renk: "#000080" },
+                { ad: "ETHICA", kod: "109", renk: "#1d4ed8" },
                 { ad: "EMA", kod: "127", renk: "#f97316" },
                 { ad: "CORPUS", kod: "019", renk: "#8b5e34" },
                 { ad: "TÜRKİYE (TS)", kod: "026", renk: "#1e3a8a" },
-                { ad: "MAGDEBURGER", kod: "036", renk: "#1d4ed8" },
+                //{ ad: "MAGDEBURGER", kod: "036", renk: "#1d4ed8" },
                 { ad: "RAY", kod: "042", renk: "#ed1c24" },
                 { ad: "MAPFRE", kod: "050", renk: "#e11d48" },
                 { ad: "NİPPON", kod: "051", renk: "#be123c" },
