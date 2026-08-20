@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.91
+// @version      1.92
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -2276,6 +2276,7 @@
                         { key: 'KS_NTF', icon: '🔕', title: 'Bildirim Engel', desc: '3+ tekrarlı popup engeli', sub: false },
                         { key: 'KS_ONSBM', icon: '🏦', title: 'Ön SBM Giriş Bilgileri', desc: 'Otoanaliz içerisindeki SBM Bilgileri bölümünü otomatik dolduran buton ekler.', sub: false },
                         { key: 'KS_FILE', icon: '📁', title: 'Ekstra Özellikler', desc: 'Aracın arşivinin klasörünü açan buton, Mağdur eksik plaka değerine 0, Parça kodunu yapıştır ve ara butonu, Tramer no girme alanlarını ekler.', sub: false },
+                        { key: 'KS_PANEL_notlar', icon: '📋', title: 'Hızlı Hazır Not', desc: 'Tüm notlar sayfasına hazır not girmek için oto çekme sistemi kullanan butonlar ekler.', sub: false },
                     ]
                 },
                 {
@@ -2510,7 +2511,7 @@
         ANALIZPANEL_srad = GM_getValue('KS_PANEL_srad', false), ANALIZPANEL_tra = GM_getValue('KS_PANEL_tra', false), ANALIZPANEL_sad = GM_getValue('KS_PANEL_sad', false), ANALIZPANEL_aad = GM_getValue('KS_PANEL_aad', false),
         ANALIZPANEL_mull = GM_getValue('KS_PANEL_mull', false), ANALIZPANEL_ryc = GM_getValue('KS_PANEL_ryc', false), ANALIZPANEL_rycorn = GM_getValue('KS_PANEL_rycorn', false), ANALIZPANEL_pys = GM_getValue('KS_PANEL_pys', false),
         ANALIZPANEL_not = GM_getValue('KS_PANEL_not', false), ANALIZPANEL_hasar = GM_getValue('KS_PANEL_hasar', false), ANALIZPANEL_mulk = GM_getValue('KS_PANEL_mulk', false), ANALIZPANEL_uzak = GM_getValue('KS_PANEL_uzak', false),
-		NOTSBM = GM_getValue('KS_PANEL_notsbm', false),
+		NOTSBM = GM_getValue('KS_PANEL_notsbm', false), NOTLAR = GM_getValue('KS_PANEL_notlar', false),
         MANUEL = GM_getValue('KS_MANU', false), REFERANS = GM_getValue('KS_REF', false), PSAY = GM_getValue('KS_PSAY', false), DONANIM = GM_getValue('KS_DNM', false), RESIM = GM_getValue('KS_IMG', false), OTOFILE = GM_getValue('KS_FILE', false),
         TRSIGORTA = GM_getValue('KS_TRS', false), QCASIGORTA = GM_getValue('KS_QCA', false), SAHIBINDEN = GM_getValue('KS_SAHIB', false), SBM = GM_getValue('KS_SBM', false), WHATSAPP = GM_getValue('KS_WP', false), BILDIRIM = GM_getValue('KS_NTF', false),
 		LOGIN = GM_getValue('KS_LGN', false), ONSBM = GM_getValue('KS_ONSBM', false), ONBELLEK = GM_getValue('KS_ONBELLEK', false);
@@ -3595,13 +3596,11 @@
                 }
             });
             document.querySelectorAll('td.yazi').forEach(td => {
-                // img'ler ve &nbsp; sonrası gelen, (XXXXX) öncesindeki sayıyı yakala
                 const text = td.innerText || td.textContent;
                 const match = text.match(/[\s\u00a0]+([\d]+)[\s\u00a0]+\([A-ZÇĞİÖŞÜa-zçğışöşüA-Za-z0-9]+\)/);
                 if (!match) return;
                 const numStr = match[1].trim();
                 if (!numStr || numStr.length < 4) return;
-                // Sadece text node'u bul ve span'a sar
                 const walker = document.createTreeWalker(td, NodeFilter.SHOW_TEXT);
                 let node;
                 while ((node = walker.nextNode())) {
@@ -3616,7 +3615,6 @@
                             span.style.cssText = 'cursor:pointer;border-radius:3px;padding:0 2px;font-size:115%;font-weight:900;color:#fff;background:#27ae60;';
                             setTimeout(() => { span.style.cssText = 'cursor:pointer;border-radius:3px;padding:0 2px;font-size:115%;font-weight:900;'; }, 1000);
                         };
-                        // Text node'u böl: önce + span + sonra
                         const parts = node.textContent.split(numStr);
                         const before = document.createTextNode(parts[0]);
                         const after = document.createTextNode(parts.slice(1).join(numStr));
@@ -3632,7 +3630,6 @@
 			    var araButonu = document.querySelector('input[type="submit"][name="Submit"]');
 			    var parcaKoduInput = document.getElementById("PARCA_KODU");
 			    if (araButonu && parcaKoduInput) {
-			        // Ortak Yapıştırma ve Arama Fonksiyonu
 			        function yapistirVeAra(prefix) {
 			            prefix = prefix || "";
 			            if (navigator.clipboard && navigator.clipboard.readText) {
@@ -3646,12 +3643,10 @@
 			                .catch(function (err) { alert("Pano okunamadı: " + err + "\nTarayıcı izin istemiş olabilir, tekrar deneyin."); });
 			            } else { alert("Tarayıcınız panoya erişimi desteklemiyor."); }
 			        }
-			        // Bütünleşik (Split) Buton Kapsayıcısı (Container)
 			        var btnGroup = document.createElement("span");
 			        btnGroup.style.display = "inline-flex";
 			        btnGroup.style.marginLeft = "5px";
 			        btnGroup.style.verticalAlign = "middle";
-			        // Sol Taraf: Normal Yapıştır ve Ara
 			        var solBtn = document.createElement("input");
 			        solBtn.type = "button";
 			        solBtn.value = "Yapıştır ve Ara";
@@ -3661,7 +3656,6 @@
 			        solBtn.style.borderRight = "1px solid rgba(0, 0, 0, 0.2)";
 			        solBtn.style.margin = "0";
 			        solBtn.addEventListener("click", function () { yapistirVeAra(""); });
-			        // Sağ Taraf: M+ İle Ara (Başa M Ekler)
 			        var sagBtn = document.createElement("input");
 			        sagBtn.type = "button";
 			        sagBtn.value = "M+";
@@ -3673,7 +3667,6 @@
 			        sagBtn.style.paddingRight = "8px";
 			        sagBtn.title = "Mercedes için başına M ekleyerek arar";
 			        sagBtn.addEventListener("click", function () { yapistirVeAra("M"); });
-			        // Parçaları Birleştir ve Sayfaya Ekle
 			        btnGroup.appendChild(solBtn);
 			        btnGroup.appendChild(sagBtn);
 			        araButonu.parentNode.insertBefore(btnGroup, araButonu.nextSibling);
@@ -3682,7 +3675,8 @@
 			if (loc("eks_hasar_magdur.php")) {
 				if (typeof window.sb_ederken === 'function') {
 				    const orijinal_sb_ederken = window.sb_ederken;
-				    window.sb_ederken = function() { const plakaInput = document.getElementById('PLAKA1');
+				    window.sb_ederken = function() {
+						const plakaInput = document.getElementById('PLAKA1');
 				        if (plakaInput) { let val = plakaInput.value.trim(); if (val.length === 1) { plakaInput.value = '0' + val; } }
 				        orijinal_sb_ederken();
 				    };
@@ -3693,7 +3687,7 @@
 				    }, true);
 				}
 			}
-			if(loc("eks_hasar_src_result.php")) {
+			if (loc("eks_hasar_src_result.php")) {
 				const BASE = location.origin;
 				const ICON = { idle: '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 15l-5-5h3V4h4v6h3z"/><path fill="currentColor" d="M5 18h14v2H5z"/></svg>', ok: '✓', err: '✗', yok: '?', busy: '…' };
 				const isKati = t => /RAPOR/.test(t = (t || '').toLocaleUpperCase('tr-TR')) && /(KATI|KATİ|KESIN|KESİN)/.test(t);
@@ -3778,11 +3772,11 @@
 			turn_dot();
 			new MutationObserver(turn_dot).observe(document.body, { childList: true, subtree: true });
         }
-        if (NOTSBM && loc("otohasar")) {
+        //  ANA SAYFADAKİ ARAYÜZ NOT KONTROLÜ
+        if (NOTSBM && loc("eks_hasar.php")) {
             const cache = new Map();
             const geoCache = new Map();
             const notesCache = new Map();
-            // Aynı satır (id) için NOTLAR paneli bir kere eklendiğinde tekrar eklenmesin diye
             const notesGridPlacedIds = new Set();
             // ---------- STİLLER ----------
             function injectStyles() {
@@ -3924,10 +3918,7 @@
                         cache.set(id, filled);
                         callback(filled);
                     },
-                    onerror: function (err) {
-                        console.error('SBM sayfası alınamadı:', err);
-                        callback(null);
-                    }
+                    onerror: function (err) { console.error('SBM sayfası alınamadı:', err); callback(null); }
                 });
             }
             // ---------- KOORDİNAT ÇEKME (İl/İlçe) ----------
@@ -3939,43 +3930,22 @@
                 if (text === '' || text === 'Seçiniz' || text === '--Tümü--' || text === 'Tümü') return false;
                 return true;
             }
-            function getSelectedText(selectEl) {
-                if (!selectEl || selectEl.selectedIndex < 0) return '';
-                return selectEl.options[selectEl.selectedIndex].text.trim();
-            }
+            function getSelectedText(selectEl) { if (!selectEl || selectEl.selectedIndex < 0) return ''; return selectEl.options[selectEl.selectedIndex].text.trim(); }
             function fetchCoordinatesFromLocation(ilText, ilceText, callback) {
                 const key = `${ilText}|${ilceText}`;
-                if (geoCache.has(key)) {
-                    callback(geoCache.get(key));
-                    return;
-                }
+                if (geoCache.has(key)) { callback(geoCache.get(key)); return; }
                 const validIlce = ilceText && ilceText !== '--Tümü--' && ilceText !== 'Tümü' && ilceText !== 'Seçiniz';
                 const query = validIlce ? `${ilceText}, ${ilText}, Türkiye` : `${ilText}, Türkiye`;
                 const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=tr&q=${encodeURIComponent(query)}`;
-
                 GM_xmlhttpRequest({
-                    method: 'GET',
-                    url: url,
-                    headers: { 'Accept': 'application/json' },
+                    method: 'GET', url: url, headers: { 'Accept': 'application/json' },
                     onload: function (response) {
                         try {
                             const data = JSON.parse(response.responseText);
-                            if (data && data.length > 0) {
-                                const result = { lat: data[0].lat, lon: data[0].lon };
-                                geoCache.set(key, result);
-                                callback(result);
-                            } else {
-                                callback(null);
-                            }
-                        } catch (e) {
-                            console.error('Nominatim parse hatası:', e);
-                            callback(null);
-                        }
+                            if (data && data.length > 0) { const result = { lat: data[0].lat, lon: data[0].lon }; geoCache.set(key, result); callback(result); } else { callback(null); }
+                        } catch (e) { console.error('Nominatim parse hatası:', e); callback(null); }
                     },
-                    onerror: function (err) {
-                        console.error('Nominatim isteği başarısız:', err);
-                        callback(null);
-                    }
+                    onerror: function (err) { console.error('Nominatim isteği başarısız:', err); callback(null); }
                 });
             }
             function makeGeoIcon(sizePx) {
@@ -3984,54 +3954,34 @@
                 icon.style.width = sizePx + 'px';
                 icon.style.height = sizePx + 'px';
                 icon.title = 'Seçili İl/İlçe üzerinden yaklaşık koordinat çekip panoya kopyalar';
-
                 const symbol = document.createElement('span');
                 symbol.className = 'sbm-geo-symbol';
                 symbol.textContent = '📍';
                 icon.appendChild(symbol);
                 return icon;
             }
-            function resetGeoIcon(icon) {
-                icon.classList.remove('sbm-geo-loading', 'sbm-geo-ok', 'sbm-geo-err');
-            }
+            function resetGeoIcon(icon) { icon.classList.remove('sbm-geo-loading', 'sbm-geo-ok', 'sbm-geo-err'); }
             function handleGeoIconClick(icon) {
                 if (icon.classList.contains('sbm-geo-loading')) return;
-
                 const ilSelect = document.getElementById('HASAR_ILI');
                 const ilceSelect = document.getElementById('HASAR_ILCESI');
-
                 if (!isValidSelectValue(ilSelect)) {
                     resetGeoIcon(icon);
                     icon.classList.add('sbm-geo-err');
                     icon.title = 'Önce geçerli bir İl seçin';
-                    setTimeout(() => {
-                        resetGeoIcon(icon);
-                        icon.title = 'Seçili İl/İlçe üzerinden yaklaşık koordinat çekip panoya kopyalar';
-                    }, 2500);
+                    setTimeout(() => { resetGeoIcon(icon); icon.title = 'Seçili İl/İlçe üzerinden yaklaşık koordinat çekip panoya kopyalar'; }, 2500);
                     return;
                 }
-
                 const ilText = getSelectedText(ilSelect);
                 const ilceText = isValidSelectValue(ilceSelect) ? getSelectedText(ilceSelect) : '';
-
                 resetGeoIcon(icon);
                 icon.classList.add('sbm-geo-loading');
                 icon.title = 'Çekiliyor...';
-
                 fetchCoordinatesFromLocation(ilText, ilceText, (result) => {
                     resetGeoIcon(icon);
-                    if (result) {
-                        GM_setClipboard(`${result.lat}\n${result.lon}`, 'text');
-                        icon.classList.add('sbm-geo-ok');
-                        icon.title = `Kopyalandı ✔  Enlem: ${result.lat} | Boylam: ${result.lon}`;
-                    } else {
-                        icon.classList.add('sbm-geo-err');
-                        icon.title = 'Koordinat bulunamadı';
-                    }
-                    setTimeout(() => {
-                        resetGeoIcon(icon);
-                        icon.title = 'Seçili İl/İlçe üzerinden yaklaşık koordinat çekip panoya kopyalar';
-                    }, 2500);
+                    if (result) { GM_setClipboard(`${result.lat}\n${result.lon}`, 'text'); icon.classList.add('sbm-geo-ok'); icon.title = `Kopyalandı ✔  Enlem: ${result.lat} | Boylam: ${result.lon}`; }
+					else { icon.classList.add('sbm-geo-err'); icon.title = 'Koordinat bulunamadı'; }
+                    setTimeout(() => { resetGeoIcon(icon); icon.title = 'Seçili İl/İlçe üzerinden yaklaşık koordinat çekip panoya kopyalar'; }, 2500);
                 });
             }
             // ---------- NOTLAR IŞIK MATRİSİ ----------
@@ -4239,14 +4189,9 @@
             }
             injectStyles();
             processButtons();
-            // DOM değişikliklerini izle (yeni satırlar/butonlar sayfaya geldiğinde ikonları eklemek için)
             const observer = new MutationObserver(() => processButtons());
             observer.observe(document.body, { childList: true, subtree: true });
-
-            // ---------- SINIRLI YENİDEN KONTROL (sürekli döngü YOK) ----------
-            // Sayfa yüklendikten sonra en fazla 5 kez, uzun aralıklarla tekrar kontrol eder.
-            // Tüm veriler (SBM koordinat ikonları + Notlar paneli) zaten alınmışsa
-            // (ekranda "loading" durumunda hiçbir öğe kalmamışsa) döngü hemen durur.
+            // ---------- SINIRLI YENİDEN KONTROL ----------
             const MAX_RETRY_COUNT = 5;
             const RETRY_INTERVAL_MS = 45000;
             let retryCount = 0;
@@ -4262,6 +4207,561 @@
                 setTimeout(() => { processButtons(true); activeNotesUpdaters.forEach((update) => update(true)); scheduleRetryCheck(); }, RETRY_INTERVAL_MS);
             }
             scheduleRetryCheck();
+        }
+		if (NOTLAR && loc("eks_eksper_all.php")) {
+            if (!document.getElementById("oh-modern-styles")) {
+                const stil = document.createElement("style");
+                stil.id = "oh-modern-styles";
+                stil.textContent = `
+                    .oh-fab-wrap {
+                        position: fixed; top: 14px; right: 14px; z-index: 9999;
+                        display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+                        font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+                    }
+                    .oh-fab-btn {
+                        display: inline-flex; align-items: center; gap: 6px; border: none;
+                        border-radius: 999px; padding: 9px 16px; font-size: 13px; font-weight: 600;
+                        color: #fff; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+                        transition: transform 0.12s ease, box-shadow 0.12s ease;
+                    }
+                    .oh-fab-btn:hover:not(:disabled) { transform: translateY(-1px) scale(1.02); box-shadow: 0 6px 16px rgba(0,0,0,0.24); }
+                    .oh-fab-btn:disabled { cursor: wait; }
+                    .oh-fab-doldur { background: linear-gradient(135deg, #4facfe 0%, #2b8fe0 100%); }
+                    .oh-fab-senaryo { background: linear-gradient(135deg, #ff9a56 0%, #f5732c 100%); }
+                    .oh-overlay {
+                        position: fixed; inset: 0; background: rgba(15, 18, 25, 0.55);
+                        backdrop-filter: blur(3px); z-index: 10000; display: flex; align-items: center; justify-content: center;
+                        font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+                    }
+                    .oh-modal {
+                        background: #fff; border-radius: 14px; width: 360px; max-height: 82vh;
+                        display: flex; flex-direction: column; box-shadow: 0 18px 50px rgba(0,0,0,0.35); overflow: hidden;
+                    }
+                    .oh-modal-header { padding: 14px 16px 10px 16px; border-bottom: 1px solid #eef0f3; display: flex; justify-content: space-between; }
+                    .oh-modal-title { font-size: 15px; font-weight: 700; color: #1a1d23; margin: 0; }
+                    .oh-modal-sub { font-size: 11px; color: #8a8f98; margin: 3px 0 0 0; }
+                    .oh-close-btn { border: none; background: #f2f3f5; color: #5a5f68; width: 26px; height: 26px; border-radius: 999px; cursor: pointer; }
+                    .oh-search-wrap { padding: 10px 16px; border-bottom: 1px solid #eef0f3; }
+                    .oh-search { width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 9px; border: 1px solid #e2e4e8; font-size: 12.5px; outline: none; background: #f8f9fb; }
+                    .oh-list { padding: 8px 12px 14px 12px; overflow-y: auto; }
+                    .oh-cat-header { font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: #9aa0aa; margin: 12px 4px 6px 4px; }
+                    .oh-card { display: block; width: 100%; text-align: left; box-sizing: border-box; border: 1px solid #eceef1; background: #fafbfc; border-radius: 999px; padding: 8px 10px; margin-bottom: 5px; font-size: 12px; color: #2b2f36; cursor: pointer; }
+                    .oh-card:hover { border-color: #b9dcff; background: #f0f8ff; }
+                    .oh-footer { padding: 10px 16px; border-top: 1px solid #eef0f3; }
+                    .oh-footer-btn { width: 100%; padding: 8px; border: none; border-radius: 9px; background: #f2f3f5; color: #45494f; font-size: 12px; font-weight: 600; cursor: pointer; }
+                `;
+                document.head.appendChild(stil);
+            }
+
+            const wrap = document.createElement("div");
+            wrap.className = "oh-fab-wrap";
+            document.body.appendChild(wrap);
+
+            const buton = document.createElement("button");
+            buton.type = "button"; // ÖNEMLİ: form içindeyse varsayılan "submit" olup sayfayı yeniden yükler
+            buton.className = "oh-fab-btn oh-fab-doldur";
+            buton.innerHTML = "✎ Otomatik Doldur";
+            wrap.appendChild(buton);
+            const senaryoButon = document.createElement("button");
+            senaryoButon.type = "button"; // ÖNEMLİ: aynı sebep
+            senaryoButon.className = "oh-fab-btn oh-fab-senaryo";
+            senaryoButon.innerHTML = "○ Hadise Notu";
+            wrap.appendChild(senaryoButon);
+
+            const BUTON_ORIJINAL = { doldur: { yazi: "✎ Otomatik Doldur" }, senaryo: { yazi: "○ Hadise Notu" } };
+
+            function butonYukleniyor(btn) { btn.disabled = true; btn.style.background = "#9E9E9E"; btn.innerHTML = "⏳ Çekiliyor..."; }
+            function butonBasarili(btn, orijinal) { btn.style.background = "#43A047"; btn.innerHTML = "✓ Tamamlandı"; setTimeout(() => { btn.disabled = false; btn.style.background = ""; btn.innerHTML = orijinal.yazi; }, 1500); }
+            function butonHata(btn, orijinal) { btn.style.background = "#E53935"; btn.innerHTML = "✗ Hata! Tekrar Deneyin"; setTimeout(() => { btn.disabled = false; btn.style.background = ""; btn.innerHTML = orijinal.yazi; }, 2000); }
+
+            function getHasarId() {
+                return new URLSearchParams(window.location.search).get('id');
+            }
+
+            function ilIlceIfadesi(v) {
+                if (v.hasarIli && v.hasarIlcesi) { return `${v.hasarIli} İLİ ${v.hasarIlcesi} İLÇESİNDE `; }
+                return "[İL] İLİ [İLÇE] İLÇESİNDE ";
+            }
+
+            function plakaFormatla(plaka) {
+                if (!plaka) return "";
+                let temizPlaka = plaka.trim().replace(/\s+/g, ' ');
+                return temizPlaka.replace(/^([1-9])(?=\s)/, '0$1');
+            }
+
+            function isimEkiGetir(isim) {
+                if (!isim) return "";
+                const isimKucuk = isim.toLocaleLowerCase('tr-TR');
+                const sonHarf = isimKucuk.slice(-1);
+                const inceUnluler = ['e', 'i', 'ö', 'ü'];
+                let ek;
+                if (['a','e','ı','i','o','ö','u','ü'].includes(sonHarf)) { ek = inceUnluler.includes(sonHarf) ? "'nin" : "'nın"; }
+                else { const sesliler = isimKucuk.match(/[aeıioöuü]/g), sonSesli = sesliler ? sesliler[sesliler.length - 1] : 'a'; ek = inceUnluler.includes(sonSesli) ? "'in" : "'ın"; }
+                return ek.toLocaleUpperCase('tr-TR');
+            }
+            function kusurMetinleriHesapla(kusuroran) {
+                const sigortaliKusurSayi = parseInt(kusuroran, 10);
+                if (!isNaN(sigortaliKusurSayi)) {
+                    if (sigortaliKusurSayi === 100) { return { sigortali: `%100 KUSURLU OLDUĞU`, karsi: `İSE KUSURSUZ OLDUĞU` }; }
+                    else if (sigortaliKusurSayi === 0) { return { sigortali: `KUSURSUZ OLDUĞU`, karsi: `İSE %100 KUSURLU OLDUĞU` }; }
+                    else { const karsiKusurSayi = 100 - sigortaliKusurSayi; return { sigortali: `%${sigortaliKusurSayi} KUSURLU OLDUĞU`, karsi: `İSE %${karsiKusurSayi} KUSURLU OLDUĞU` }; }
+                }
+                return { sigortali: `%${kusuroran} KUSURLU OLDUĞU`, karsi: `İSE KUSURSUZ OLDUĞU` };
+            }
+            function servisDurumuGetir(doc) {
+                const yetkiliCb = doc.querySelector('input[name="SERVIS_TUR_ID1"]');
+                const yetkisizCb = doc.querySelector('input[name="SERVIS_TUR_ID0"]');
+                const anlasmaliCb = doc.querySelector('input[name="ANLASMALI1"]');
+                const anlasmasizCb= doc.querySelector('input[name="ANLASMALI0"]');
+                const isChecked = (el) => !!el && (el.checked || el.hasAttribute('checked'));
+                let yetkiTur = "";
+                if (isChecked(yetkiliCb)) yetkiTur = "YETKİLİ";
+                else if (isChecked(yetkisizCb)) yetkiTur = "";
+                let anlasmaTur = "";
+                if (isChecked(anlasmaliCb)) anlasmaTur = "ANLAŞMALI";
+                else if (isChecked(anlasmasizCb)) anlasmaTur = "";
+                if (yetkiTur && anlasmaTur) return`${yetkiTur} VE ${anlasmaTur}`;
+                if (!yetkiTur && !anlasmaTur) return ``;
+                if (yetkiTur) return yetkiTur;
+                if (anlasmaTur) return anlasmaTur;
+                return "";
+            }
+            const senaryolar = [
+                {
+                    kategori: "Şerit & Sollama",
+                    baslik: "Şerit değiştirirken çarpışma",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA [CADDE/SOKAK] ÜZERİNDE ŞERİT DEĞİŞTİRDİĞİ ESNADA ${v.md_plaka} PLAKALI ARAÇLA ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kavşak",
+                    baslik: "Kavşakta çarpışma (Genel)",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA [CADDE/SOKAK] CADDESİNDEKİ KAVŞAĞA GELDİĞİ ESNADA ARACIN ÖN KISMI [CADDE/SOKAK] CADDESİNDEN GELEN ${v.md_plaka} PLAKALI ARACIN [ÇARPMA BÖLGESİ] KISMINA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "ANLAŞMALI KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Geçiş Önceliği",
+                    baslik: "Kontrolsüz kavşakta sağdan gelen araca çarpma",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA KONTROLSÜZ KAVŞAĞA GELDİĞİ ESNADA SAĞINDAN GELEN ${v.md_plaka} PLAKALI ARAÇLA ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Geçiş Önceliği",
+                    baslik: "Tali yoldan ana yola çıkarken çarpışma",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA TALİ YOLDAN ANA YOLA ÇIKIŞ YAPTIĞI ESNADA ANA YOLDA SEYREDEN ${v.md_plaka} PLAKALI ARAÇLA ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Geçiş Önceliği",
+                    baslik: "Dur / Yol Ver levhası ihlali",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA YOL VER LEVHASINA UYMAYARAK KAVŞAĞA GİRMESİ SONUCU ${v.md_plaka} PLAKALI ARAÇLA ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Park & Manevra",
+                    baslik: "Park halindeki araca çarpma",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA PARK HALİNDEKİ ${v.md_plaka} PLAKALI ARACA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Takip & Duraklama",
+                    baslik: "Arkadan çarpma",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA SEYİR HALİNDEYKEN ÖNÜNDE DURAN/SEYREDEN ${v.md_plaka} PLAKALI ARACA ARKADAN ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Takip & Duraklama",
+                    baslik: "Zincirleme arkadan çarpma (Ortadaki araç)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE SEYİR HALİNDEYKEN ÖNÜNDE YAVAŞLAYAN/DURAN [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARACA ÇARPMASI, ARDINDAN ARKASINDAN GELEN ${v.md_plaka} PLAKALI ARACIN DA KENDİ ARACINA ARKADAN ÇARPMASI NETİCESİNDE ZİNCİRLEME KAZA MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Takip & Duraklama",
+                    baslik: "Zincirleme arkadan itilme (Durur vaziyette vurulup öndekine çarpma)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE ${v.anaplaka} PLAKALI ARAÇLA DURUR VAZİYETTEYKEN, ARKASINDAN GELEN ${v.md_plaka} PLAKALI ARACIN ARKADAN ÇARPMASI VE ÇARPMANIN ŞİDDETİYLE KENDİ ARACININ DA ÖNÜNDE DURAN [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARACA İTİLEREK ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+				{
+                    kategori: "Takip & Duraklama",
+                    baslik: "Zincirleme kaza - En arkadaki araç (Arkadan gelip vuran)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE SEYİR HALİNDEYKEN, DİKKATSİZLİK VE TAKİP MESAFESİNİ KORUYAMAMA NEDENİYLE ÖNÜNDE YAVAŞLAYAN/DURAN ${v.md_plaka} PLAKALI ARACA ARKADAN ÇARPMASI VE ÇARPMANIN ŞİDDETİYLE BU ARACIN DA ÖNÜNDEKİ [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARACA ÇARPMASINA NEDEN OLMASI NETİCESİNDE ZİNCİRLEME KAZANIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Takip & Duraklama",
+                    baslik: "Zincirleme kaza - En öndeki araç (Durur vaziyette arkadan vurulan)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE ${v.anaplaka} PLAKALI ARAÇLA DURUR/YAVAŞLAMIŞ VAZİYETTEYKEN, ARKASINDA BEKLEYEN/SEYREDEN ${v.md_plaka} PLAKALI ARACA EN ARKADAN GELEN [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARACIN ÇARPMASI VE ÇARPMANIN ETKİSİ İLE ${v.md_plaka} PLAKALI ARACIN DA KENDİ ARACINA ARKADAN ÇARPMASI NETİCESİNDE ZİNCİRLEME KAZANIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Şerit & Sollama",
+                    baslik: "Sollama sırasında çarpışma",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE ÖNÜNDE SEYREDEN ${v.md_plaka} PLAKALI ARACI SOLLAMAK İSTEDİĞİ ESNADA, KARŞI YÖNDEN GELEN/ŞERİDİNE DÖNMEKTE OLAN SÖZ KONUSU ARACIN [SAĞ/SOL] [ÖN/YAN] KISMIYLA ARACININ [SAĞ/SOL] [ÖN/YAN] KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kavşak",
+                    baslik: "Kırmızı ışıkta/öncelik ihlalinde kavşak çarpışması",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [KAVŞAK ADI] KAVŞAĞINDAN GEÇİŞ YAPTIĞI ESNADA, KARŞI YÖNDEN/YAN YOLDAN GELEN ${v.md_plaka} PLAKALI ARACIN [TRAFİK IŞIĞINA/DUR LEVHASINA UYMADAN] KAVŞAĞA GİRİŞ YAPMASI SONUCU ARAÇLARIN ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kavşak",
+                    baslik: "Kavşakta 3'lü karıştırma / savrulup 3. araca çarpma",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [KAVŞAK ADI] KAVŞAĞINDA ${v.md_plaka} PLAKALI ARAÇLA ÇARPIŞMASI VE ÇARPIŞMANIN ETKİSİYLE SAVRULAN ARAÇLARIN KAVŞAKTA SEYİR/BEKLEME HALİNDE BULUNAN [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARACA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Park & Manevra",
+                    baslik: "U dönüşü / manevra sırasında çarpışma",
+                    sablon: v => `${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)}SAYIN ${v.surucu} SÜRÜCÜSÜ OLDUĞU ${v.anaplaka} PLAKALI ARAÇLA U DÖNÜŞÜ YAPTIĞI ESNADA ${v.md_plaka} PLAKALI ARAÇLA ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Park & Manevra",
+                    baslik: "Park halindeki araca vurup diğer park halindeki araca savrulma",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/SOKAK] ÜZERİNDE SEYİR HALİNDEYKEN DİREKSİYON HAKİMİYETİNİ KAYBEDEREK PARK HALİNDEKİ ${v.md_plaka} PLAKALI ARACA, ARDINDAN SAVRULAN ARACIN DİĞER PARK HALİNDEKİ [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARACA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kapı",
+                    baslik: "Park halindeki araçtan açılan kapıya çarpma",
+                    sablon: v => `SAYIN ${v.aracSahibi} ADINA KAYITLI BULUNAN ${v.anaplaka} PLAKALI SİGORTALI ARACIN SÜRÜCÜLÜĞÜNÜ YAPMAKTA OLAN SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)} [CADDE/SOKAK] ÜZERİNDE SEYİR HALİNDEYKEN, YOL KENARINDA PARK HALİNDE BULUNAN ${v.md_plaka} PLAKALI ARACIN SÜRÜCÜSÜNÜN ANİDEN KAPISINI AÇMASI SONUCU ARACININ [SAĞ/SOL] YAN KISMININ SÖZ KONUSU KAPIYA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Park & Manevra",
+                    baslik: "Otopark içi manevra çarpışması",
+                    sablon: v => `SAYIN ${v.aracSahibi} ADINA KAYITLI BULUNAN ${v.anaplaka} PLAKALI SİGORTALI ARACIN SÜRÜCÜLÜĞÜNÜ YAPMAKTA OLAN SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)} [İŞ YERİ/AVM/SİTE ADI] OTOPARKINDA GERİ MANEVRA YAPTIĞI ESNADA ARACININ ARKA KISMIYLA, OTOPARKTA PARK HALİNDE BULUNAN ${v.md_plaka} PLAKALI ARACIN ÖN KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kavşak",
+                    baslik: "Şeride hatalı dönüş (kavşakta dönüş kuralı ihlali)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [KAVŞAK ADI] KAVŞAĞINDA [SAĞA/SOLA] DÖNÜŞ YAPTIĞI ESNADA, DÖNÜŞ KURALINA UYMADIĞI İÇİN ARACININ [SAĞ/SOL] YAN KISMIYLA, DOĞRU YÖNDE İLERLEMEKTE OLAN ${v.md_plaka} PLAKALI ARACIN ÖN KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Şerit & Sollama",
+                    baslik: "Şerit ihlali ile karşı yönden gelen araca çarpma",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE SEYİR HALİNDEYKEN [VİRAJDA/YOL ÇALIŞMASI NEDENİYLE] ŞERİDİNİ İHLAL ETMESİ SONUCU ARACININ ÖN KISMIYLA, KARŞI YÖNDEN GELMEKTE OLAN ${v.md_plaka} PLAKALI ARACIN ÖN KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Şerit & Sollama",
+                    baslik: "Sollama esnasında sıkıştırma ve 3'lü temas",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL] ÜZERİNDE ŞERİT DEĞİŞTİRDİĞİ/SOLLAMA YAPTIĞI ESNADA SAĞINDA SEYREDEN ${v.md_plaka} PLAKALI ARAÇ İLE SOL ŞERİTTEKİ [ÜÇÜNCÜ_ARAÇ_PLAKA] PLAKALI ARAÇ ARASINDA SIKIŞARAK ÇARPIŞMALARI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kontrol Kaybı",
+                    baslik: "Kontrol kaybı - sabit cisme çarpma (tek taraflı)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN [YOL ISLAKLIĞI/SÜRAT/HATALI MANEVRA] NEDENİYLE ARACIN KONTROLÜNÜ KAYBETTİĞİ, SAVRULAN ARACIN [SAĞ/SOL] YAN KISMIYLA/ÖN KISMIYLA YOL KENARINDA BULUNAN [BARİYER/AĞAÇ/DUVAR/TRAFİK LEVHASI] İLE ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
+                },
+                {
+                    kategori: "Kontrol Kaybı",
+                    baslik: "Kontrol kaybı - karşı/yan şeritteki araca savrulma",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN [YOL ISLAKLIĞI/SÜRAT/HATALI MANEVRA] NEDENİYLE ARACIN KONTROLÜNÜ KAYBEDEREK [SAĞ/SOL] ŞERİDE SAVRULDUĞU, ARACININ [ÖN/YAN] KISMIYLA O ŞERİTTE SEYRETMEKTE OLAN ${v.md_plaka} PLAKALI ARACIN [ÖN/YAN/ARKA] KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ANLAŞMA TUTANAĞINDA/EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
+                },
+                {
+                    kategori: "Park & Manevra",
+                    baslik: "Park halinden karayoluna çıkarken çarpışma",
+                    sablon: v => `SAYIN ${v.aracSahibi} ADINA KAYITLI BULUNAN ${v.anaplaka} PLAKALI SİGORTALI ARACIN SÜRÜCÜLÜĞÜNÜ YAPMAKTA OLAN SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${ilIlceIfadesi(v)} [CADDE/SOKAK] ÜZERİNDE PARK HALİNDEN KARAYOLUNA ÇIKIŞ YAPTIĞI ESNADA ARACININ [ÖN/YAN] KISMIYLA, YOLDA SEYİR HALİNDE BULUNAN ${v.md_plaka} PLAKALI ARACIN [ÖN/YAN/ARKA] KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ  ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Kapı",
+                    baslik: "Yol üzerinde duran araçtan kapı açılması",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/SOKAK] ÜZERİNDE SEYİR HALİNDEYKEN, YOL ÜZERİNDE (PARK HALİNDE OLMAYAN) DURMAKTA OLAN ${v.md_plaka} PLAKALI ARACIN SÜRÜCÜSÜNÜN ANİDEN KAPISINI AÇMASI SONUCU ARACININ [SAĞ/SOL] YAN KISMININ SÖZ KONUSU KAPIYA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ  ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} BELİRTİLMEKTEDİR.`
+                },
+                {
+                    kategori: "Cisim Çarpması",
+                    baslik: "Araçtan düşen/fırlayan cismin çarpması",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN, ÖNÜNDE SEYREDEN ${v.md_plaka} PLAKALI ARAÇTAN YOLA DÜŞEN/FIRLAYAN [CİSİM TÜRÜ] CİSMİN ARACININ [ÖN/ALT/YAN] KISMINA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
+                }
+            ];
+
+            function magdurBilgisiCek(anaSayfaDoc, callback) {
+                const link = anaSayfaDoc.querySelector('a[href*="eks_hasar_magdur.php"]');
+                if (!link) { callback(null); return; }
+                let href = link.getAttribute('href') || "";
+                if (href.startsWith("javascript:")) { const match = href.match(/['"](eks_hasar_magdur\.php[^'"]+)['"]/); if (match) { href = match[1]; } }
+                const magdurUrl = new URL(href, `${window.location.origin}/eks/`).href;
+                GM_xmlhttpRequest({
+                    method: "GET", url: magdurUrl, timeout: 15000,
+                    onload: function(resp) {
+                        const docM = new DOMParser().parseFromString(resp.responseText, "text/html");
+                        const p1 = docM.querySelector('input[name="PLAKA1"]')?.value?.trim() || "";
+                        const p2 = docM.querySelector('input[name="PLAKA2"]')?.value?.trim() || "";
+                        const p3 = docM.querySelector('input[name="PLAKA3"]')?.value?.trim() || "";
+                        const md_plaka = plakaFormatla(`${p1} ${p2} ${p3}`);
+                        const ad = docM.querySelector('input[name="AD"]')?.value?.trim() || "";
+                        const soyad = docM.querySelector('input[name="SOYAD"]')?.value?.trim() || "";
+                        const md_aracSahibi = `${ad} ${soyad}`.trim();
+                        const md_surucu = docM.querySelector('input[name="SURUCU_ADI"]')?.value?.trim() || "";
+                        const md_isim = md_surucu || md_aracSahibi;
+                        const mdek = isimEkiGetir(md_isim);
+                        const md_piyasa = docM.querySelector('input[name="PIYASA"]')?.value?.trim() || "";
+                        callback({ md_plaka, md_isim, md_aracSahibi, mdek, md_piyasa });
+                    },
+                    onerror: function() { callback(null); },
+                    ontimeout: function() { callback(null); }
+                });
+            }
+            function hasarIlcesiKoduBul(doc) {
+                const scriptler = doc.querySelectorAll('script');
+                const desen = /FillSecondCombo\(\s*'ILCE_ID'\s*,\s*'AD'\s*,\s*'[^']*'\s*,\s*'([^']*)'\s*,\s*'HASAR_ILCESI'\s*,\s*'([^']*)'\s*\)/;
+                for (const s of scriptler) {
+                    const metin = s.textContent || "";
+                    const m = metin.match(desen);
+                    if (m) {
+                        return { ilceKodu: m[1], ilKodu: m[2] };
+                    }
+                }
+                return null;
+            }
+            async function hasarIlcesiAdiBul(doc) {
+                return new Promise((resolve) => {
+                    let denemeSayisi = 0;
+                    const maxDeneme = 20; // Toplam 1 saniye bekleme (20 * 50ms)
+                    const kontrolEt = () => {
+                        const selectElement = doc.querySelector('select[name="HASAR_ILCESI"]');
+                        if (selectElement) {
+                            const seciliOption = selectElement.querySelector('option:checked');
+                            const val = selectElement.value;
+                            // Eğer değer var, boş değil ve -1'den farklı ise geçerli ismi al
+                            if (val && val !== "-1" && seciliOption) {
+                                const metin = (seciliOption.textContent || "").trim();
+                                if (metin && metin !== "Seçiniz" && metin !== "Seçiniz...") {
+                                    resolve(metin);
+                                    return;
+                                }
+                            }
+                        }
+                        // Script scriptlerinden parse etme alternatifini de deneriz
+                        const scriptler = doc.querySelectorAll('script');
+                        const desen = /FillSecondCombo\(\s*'ILCE_ID'\s*,\s*'AD'\s*,\s*'[^']*'\s*,\s*'([^']*)'\s*,\s*'HASAR_ILCESI'\s*,\s*'([^']*)'\s*\)/;
+                        for (const s of scriptler) {
+                            const metin = s.textContent || "";
+                            const m = metin.match(desen);
+                            if (m && m[1] !== "-1") {
+                                const opt = doc.querySelector(`select[name="HASAR_ILCESI"] option[value="${m[1]}"]`);
+                                if (opt) {
+                                    resolve((opt.textContent || "").trim());
+                                    return;
+                                }
+                            }
+                        }
+                        denemeSayisi++;
+                        if (denemeSayisi < maxDeneme) { setTimeout(kontrolEt, 50); } else { resolve("[OKUNAMADI]"); }
+                    };
+                    kontrolEt();
+                });
+            }
+            function tumVerileriGetir(callback) {
+                const hasarId = getHasarId();
+                if (!hasarId) {
+                    alert("Hasar ID bilgisi URL'den alınamadı!");
+                    callback(null);
+                    return;
+                }
+                const sdataUrl = `${window.location.origin}/eks/sdata_edit.php?id=${hasarId}`;
+                const anaSayfaUrl = `${window.location.origin}/eks/eks_hasar.php?act=upd&id=${hasarId}`;
+                GM_xmlhttpRequest({
+                    method: "GET", url: sdataUrl, timeout: 15000,
+                    onload: function(responseSdata) {
+                        const docSdata = new DOMParser().parseFromString(responseSdata.responseText, "text/html");
+                        const servisil = docSdata.querySelector('select[name="EKSPERTIZ_YERI_IL_KOD"] option:checked')?.textContent?.trim() || "";
+                        const servisilce = docSdata.querySelector('input[name="EKSPERTIZ_YERI_ILCE_STR"]')?.value?.trim() || "";
+                        const hasarkonum = docSdata.querySelector('select[name="HASARLI_BOLGE_NO"] option:checked')?.textContent?.trim() || "[HASAR BÖLGESİ]";
+
+                        GM_xmlhttpRequest({
+                            method: "GET", url: anaSayfaUrl, timeout: 15000,
+                            onload: async function(responseAna) {
+                                const doc = new DOMParser().parseFromString(responseAna.responseText, "text/html");
+                                if (!doc) { callback(null); return; }
+                                const tg = doc.querySelector('input[name="HASAR_TARIHI_GUN"]')?.value || "";
+                                const ta = doc.querySelector('input[name="HASAR_TARIHI_AY"]')?.value || "";
+                                const ty = doc.querySelector('input[name="HASAR_TARIHI_YIL"]')?.value || "";
+                                const tarih = `${tg}.${ta}.${ty}`;
+                                const eg = doc.querySelector('input[name="EKSPERTIZ_TARIHI_GUN"]')?.value || "";
+                                const ea = doc.querySelector('input[name="EKSPERTIZ_TARIHI_AY"]')?.value || "";
+                                const ey = doc.querySelector('input[name="EKSPERTIZ_TARIHI_YIL"]')?.value || "";
+                                const extarih = `${eg}.${ea}.${ey}`;
+                                const saat = doc.querySelector('select[name="KAZA_SAAT"] option:checked')?.textContent || "";
+                                const dakika = doc.querySelector('select[name="KAZA_DAKIKA"] option:checked')?.textContent || "";
+                                const kazaSaati = `${saat}:${dakika}`;
+                                const p1 = doc.querySelector('input[name="HAS_PLAKA1"]')?.value || "";
+                                const p2 = doc.querySelector('input[name="HAS_PLAKA2"]')?.value || "";
+                                const p3 = doc.querySelector('input[name="HAS_PLAKA3"]')?.value || "";
+                                const anaplaka = plakaFormatla(`${p1} ${p2} ${p3}`);
+                                const aracSahibi = doc.querySelector('input[name="HAS_ARAC_SAHIBI"]')?.value || "";
+                                const aracKullanan = doc.querySelector('input[name="SB_ARACI_KULLANAN"]')?.value?.trim() || "";
+                                const surucu = aracKullanan || aracSahibi;
+                                const ek = isimEkiGetir(surucu);
+                                const servisAdi = doc.querySelector('input[name="SERVIS_ADI"]')?.value || "";
+                                const servisyer = doc.querySelector('input[name="EKSPERTIZ_ADRESI"]')?.value || "";
+                                let tramerno = doc.querySelector('input[name="TRAMER_DOSYA_NO"]')?.value || "";
+                                const kusuroran = doc.querySelector('select[name="KUSUR_ORANI"]')?.value?.trim() || "";
+                                const hasarIli = (doc.querySelector('select[name="HASAR_ILI"] option:checked')?.textContent || "").trim();
+                                const hasarIlcesi = await hasarIlcesiAdiBul(doc);
+                                const servisDurumu = servisDurumuGetir(doc);
+                                const kanaat = (doc.querySelector('select[name="KANAAT"] option:checked')?.textContent || "").trim();
+                                const kanaatDeger = doc.querySelector('select[name="KANAAT"] option:checked')?.value || "";
+                                const kanaatSebep = (doc.querySelector('select[name="KANAAT_SEBEP"] option:checked')?.textContent || "").trim();
+                                const kanaatAciklama = (doc.querySelector('textarea[name="ACIKLAMA"]')?.value || "").trim();
+                                const sigortaSekli = (doc.querySelector('select[name="SIGORTA_SEKLI"] option:checked')?.textContent || "").trim().toLocaleUpperCase('tr-TR');
+                                const isKasko = sigortaSekli.includes("KASKO");
+                                magdurBilgisiCek(doc, function(magdur) {
+                                    const magdurBulunduMu = !!(magdur && (magdur.md_plaka || magdur.md_isim));
+                                    const md_plaka = magdur?.md_plaka || "[KARŞI PLAKA]";
+                                    const md_isim = magdur?.md_isim || magdur?.md_aracSahibi || "[KARŞI SÜRÜCÜ]";
+                                    const md_aracSahibi = magdur?.md_aracSahibi || "[KARŞI SAHİBİ]";
+                                    const mdek = magdur?.mdek || isimEkiGetir(md_isim);
+
+                                    callback({
+                                        servisil, servisilce, hasarIli, hasarIlcesi, tarih, extarih, kazaSaati,
+                                        anaplaka, aracSahibi, aracKullanan, surucu, ek, servisAdi, servisyer,
+                                        tramerno, kusuroran, sigortaSekli, isKasko, magdurBulunduMu,
+                                        md_plaka, md_isim, md_aracSahibi, mdek, hasarkonum, servisDurumu
+                                    });
+                                });
+                            },
+                            onerror: function() { callback(null); },
+                            ontimeout: function() { callback(null); }
+                        });
+                    },
+                    onerror: function() { callback(null); },
+                    ontimeout: function() { callback(null); }
+                });
+            }
+            function panelGoster(v) {
+                const eski = document.getElementById("hadise-panel-overlay");
+                if (eski) eski.remove();
+                const overlay = document.createElement("div");
+                overlay.id = "hadise-panel-overlay";
+                overlay.className = "oh-overlay";
+                overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+                const modal = document.createElement("div");
+                modal.className = "oh-modal";
+                modal.addEventListener("click", (e) => e.stopPropagation());
+                const header = document.createElement("div");
+                header.className = "oh-modal-header";
+                header.innerHTML = `
+                    <div>
+                        <p class="oh-modal-title">Hadise Notu Seç</p>
+                        <p class="oh-modal-sub">Bir senaryoya tıklayınca not otomatik doldurulur. [Köşeli Parantez] kısımlarını sonradan elle düzenleyin.</p>
+                    </div>
+                `;
+                const kapatX = document.createElement("button");
+                kapatX.type = "button"; // ÖNEMLİ: form submit'i engelle
+                kapatX.className = "oh-close-btn";
+                kapatX.innerHTML = "✕";
+                kapatX.addEventListener("click", () => overlay.remove());
+                header.appendChild(kapatX);
+                modal.appendChild(header);
+                const searchWrap = document.createElement("div");
+                searchWrap.className = "oh-search-wrap";
+                const search = document.createElement("input");
+                search.type = "text";
+                search.className = "oh-search";
+                search.placeholder = "🔍 Senaryo ara (kavşak, kapı, arkadan...)";
+                searchWrap.appendChild(search);
+                modal.appendChild(searchWrap);
+                const liste = document.createElement("div");
+                liste.className = "oh-list";
+                modal.appendChild(liste);
+                function listeCiz(filtre) {
+                    liste.innerHTML = "";
+                    const q = (filtre || "").trim().toLocaleLowerCase('tr-TR');
+                    const kategoriler = [];
+                    senaryolar.forEach(s => { if (!kategoriler.includes(s.kategori)) kategoriler.push(s.kategori); });
+
+                    kategoriler.forEach(kat => {
+                        const buKategoridekiler = senaryolar.filter(s => s.kategori === kat && (!q || s.baslik.toLocaleLowerCase('tr-TR').includes(q)));
+                        if (buKategoridekiler.length === 0) return;
+
+                        const catHeader = document.createElement("div");
+                        catHeader.className = "oh-cat-header";
+                        catHeader.textContent = kat;
+                        liste.appendChild(catHeader);
+                        buKategoridekiler.forEach(s => {
+                            const kart = document.createElement("button");
+                            kart.type = "button"; // ÖNEMLİ: form submit'i engelle
+                            kart.className = "oh-card";
+                            kart.textContent = s.baslik;
+                            kart.addEventListener("click", function() {
+                                const metin = s.sablon(v);
+                                const alan = document.querySelector('textarea[name="HADISE_NOTU"]');
+                                if (alan) { alan.value = metin; alan.dispatchEvent(new Event('input', { bubbles: true })); }
+                                overlay.remove();
+                            });
+                            liste.appendChild(kart);
+                        });
+                    });
+                }
+
+                listeCiz("");
+                search.addEventListener("input", () => listeCiz(search.value));
+                const footer = document.createElement("div");
+                footer.className = "oh-footer";
+                const kapatBtn = document.createElement("button");
+                kapatBtn.type = "button"; // ÖNEMLİ: form submit'i engelle
+                kapatBtn.className = "oh-footer-btn";
+                kapatBtn.textContent = "Kapat";
+                kapatBtn.addEventListener("click", () => overlay.remove());
+                footer.appendChild(kapatBtn);
+                modal.appendChild(footer);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+                search.focus();
+            }
+            senaryoButon.addEventListener("click", function() {
+                butonYukleniyor(senaryoButon);
+                tumVerileriGetir(function(v) {
+                    if (!v) { butonHata(senaryoButon, BUTON_ORIJINAL.senaryo); return; }
+                    if (v.isKasko && !v.magdurBulunduMu) {
+                        alert("Bu dosya KASKO tipinde ve karşı taraf/çarpışan araç bilgisi bulunamadı (muhtemelen tek taraflı bir hasar). Hadise Notu senaryoları karşı taraf aracını referans aldığından, karşı araç plakası/adı [00 AAA 000] / [AD SOYAD GİRİLMEDİ] gibi belirgin sahte değerlerle gelecek; gerekiyorsa elle düzenleyin.");
+                    }
+                    panelGoster(v);
+                    butonBasarili(senaryoButon, BUTON_ORIJINAL.senaryo);
+                });
+            });
+            buton.addEventListener("click", function() {
+                butonYukleniyor(buton);
+                tumVerileriGetir(function(v) {
+                    if (!v) { butonHata(buton, BUTON_ORIJINAL.doldur); return; }
+
+                    const { servisil, servisilce, tarih, extarih, kazaSaati, anaplaka, surucu, ek, servisAdi, servisyer, isKasko, magdurBulunduMu, md_plaka, md_isim, mdek, hasarkonum, servisDurumu } = v;
+                    let tramerno = v.tramerno;
+                    const kusuroran = v.kusuroran;
+                    const hasarYeriIfadesiMetin = ilIlceIfadesi(v);
+
+                    const tramerGerekli = !isKasko || magdurBulunduMu;
+                    if (tramerGerekli && (!tramerno || tramerno.trim() === "")) {
+                        let girilenTramer = prompt("Tramer No bulunamadı! Lütfen Tramer Numarasını giriniz:", "");
+                        tramerno = girilenTramer !== null ? girilenTramer : "GİRİLMEDİ";
+                    }
+
+                    function bossaYaz(selector, metin) {
+                        const alan = document.querySelector(selector);
+                        if (alan && !alan.value.trim()) { alan.value = metin; }
+                    }
+
+                    if (isKasko && !magdurBulunduMu) {
+                        bossaYaz('textarea[name="EKSPER_NOTU"]',
+                            `${tarih} TARİHİNDE SAAT ${kazaSaati} SIRALARINDA ${hasarYeriIfadesiMetin}MEYDANA GELEN KAZADA; ` +
+                            `${anaplaka} PLAKALI SİGORTALI ARAÇ SÜRÜCÜSÜ SAYIN ${surucu}${ek} ARACINDA HASAR MEYDANA GELDİĞİ, ` +
+                            `HASARIN KASKO POLİÇESİ KAPSAMINDA DEĞERLENDİRİLDİĞİ TESPİT EDİLMİŞTİR.`
+                        );
+                    } else {
+                        const { sigortali: sigortaliKusurMetni, karsi: karsiKusurMetni } = kusurMetinleriHesapla(kusuroran);
+                        const tramerIfadesi = tramerno ? `${tramerno} NOLU TRAMER SONUÇ BELGESİNDEN TESPİT EDİLMİŞTİR. ` : "";
+                        const kazaTuruIfadesi = isKasko ? "MEYDANA GELEN KAZADA" : "MEYDANA GELEN TRAFİK KAZASINDA";
+                        const kapanisIfadesi = isKasko ? "MEYDANA GELEN KAZA İLE HASAR ÖRTÜŞMEKTEDİR." : "MEYDANA GELEN TRAFİK KAZASI İLE HASAR ÖRTÜŞMEKTEDİR.";
+
+                        bossaYaz('textarea[name="EKSPER_NOTU"]',
+                            `${tarih} TARİHİNDE SAAT ${kazaSaati} SIRALARINDA ${hasarYeriIfadesiMetin}${kazaTuruIfadesi}; ` +
+                            `${anaplaka} PLAKALI SİGORTALI ARAÇ SÜRÜCÜSÜ SAYIN ${surucu}${ek} ${sigortaliKusurMetni}, ` +
+                            `${md_plaka} PLAKALI KARŞI ARAÇ SÜRÜCÜSÜ SAYIN ${md_isim}${mdek} ${karsiKusurMetni} ` +
+                            `${tramerIfadesi}` +
+                            `${kapanisIfadesi}`
+                        );
+                    }
+                    const servisIfadesi = servisDurumu ? `${servisDurumu} ${servisAdi}` : servisAdi;
+                    const incelenenPlaka = isKasko ? anaplaka : md_plaka;
+                    bossaYaz('textarea[name="HASAR_NITELIGI"]',
+                        `SAYIN ŞİRKETİNİZİN TALİMATI ÜZERİNE ${extarih} TARİHİNDE ` +
+                        `${servisil} İLİ ${servisilce} İLÇESİ ${servisyer} ADRESİNDE BULUNAN ` +
+                        `${servisAdi} SERVİSİNE GİDİLEREK GEREKLİ EKSPERTİZ ÇALIŞMASINA BAŞLANILMIŞTIR. ` +
+                        `YAPILAN İNCELEMEDE ARACIN ${hasarkonum} KISMININ HASARLI OLDUĞU TESPİT EDİLMİŞTİR.`
+                    );
+                    bossaYaz('textarea[name="HADISE_NOTU"]', "");
+                    bossaYaz('textarea[name="MUAFIYET_NOTU"]', "");
+                    bossaYaz('textarea[name="EKSIK_ASKIN_SIGORTA"]', "");
+                    bossaYaz('textarea[name="DIGER"]', "");
+                    bossaYaz('textarea[name="NOTLAR"]', "");
+                    butonBasarili(buton, BUTON_ORIJINAL.doldur);
+                });
+            });
         }
         // SBM oto doldurma sistemi
         if (ONSBM && loc("sdata_edit.php")) {
@@ -5064,6 +5564,13 @@
                             <button id="b_donyan" class="btn-brown">EŞDEĞERE ÇEVİR</button>
                         </div>
                         <div class="ks-tooltip-container">
+                            <div class="ks-tooltip-box">
+                                <strong>Otomatik Giriş</strong><br>
+                                Butonlar kategori listelerinden otomatik seçip hızlı giriş yapar. Eğer parça bilgileri (kod, ad, fiyat) bölümü boş olursa sadece kategori seçer.
+                            </div>
+                            <button id="b_fatdus" class="btn-ok">FATURA FİYATI DÜŞÜK</button>
+						</div>
+                        <div class="ks-tooltip-container">
                             <div class="tm-button-grid">
                                 <button id="b_isc_kaporta" class="btn-pork">KAPORTA İŞÇ.</button>
                                 <button id="b_isc_boya" class="btn-pork">BOYA İŞÇ.</button>
@@ -5289,7 +5796,13 @@
                 $("b_braket").onclick = withLoading($("b_braket"), async () => { await MainFields(); await SideFields("27", "539"); });
                 $("b_dorse").onclick = withLoading($("b_dorse"), async () => { await MainFields(); await SideFields("31", "556"); });
                 $("b_diger").onclick = withLoading($("b_diger"), async () => { await MainFields(); await SideFields("6", ""); });
-
+                $("b_fatdus").onclick = withLoading($("b_fatdus"), async () => {
+					const fiyat = refs.fiyat.value.replace(",", ".");
+                    if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat;
+					if ($("BIRIM_FIYAT_TALEP")) $("BIRIM_FIYAT_TALEP").value = fiyat;
+					await selectValue("SISTEM_NOTU_ID", "10");
+					submitForm();
+				});
                 $("b_gnlonar").onclick = withLoading($("b_gnlonar"), async () => {
                     const fiyat = refs.fiyat.value.replace(",", ".");
                     if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat;
@@ -5297,7 +5810,6 @@
                     await selectValue("GRUP_ID", "6"); await selectValue("ANA_GRUP", "495");
                     submitForm();
                 });
-
                 $("b_donyan").onclick = withLoading($("b_donyan"), async () => {
                     const fiyat = refs.fiyat.value.replace(",", ".");
                     if ($("BIRIM_FIYAT_GERCEK")) $("BIRIM_FIYAT_GERCEK").value = fiyat;
@@ -5307,46 +5819,26 @@
                 });
                 setInterval(() => { const realInput = document.getElementById("PARCA_KODU"); if (realInput && (realInput.value || realInput.disabled)) refs.bYeni.classList.add("blinlink"); else refs.bYeni.classList.remove("blinlink"); }, 1000);
             }
-          const moveSurekliToNewLine = () => {
-    const sureklInput = document.getElementById('SUREKLI');
-    if (sureklInput && !sureklInput.dataset.ksBr) {
-        sureklInput.dataset.ksBr = '1';
-        sureklInput.parentNode.insertBefore(document.createElement('br'), sureklInput);
-    }
-};
-
-const init = () => {
-    if (typeof initPanel === 'function') initPanel();
-    setTimeout(() => {
-        const checkTarget = document.getElementById("SUREKLI");
-        if (checkTarget && !checkTarget.checked) {
-            checkTarget.click();
-        }
-    }, 1000);
-};
-
-const focusTarget = () => {
-    const input = document.getElementById('tm_kod');
-    if (input) {
-        input.focus();
-        input.select();
-        return true;
-    }
-    return false;
-};
-
-if (document.readyState === "complete") init(); else unsafeWindow.addEventListener('load', init);
-
-const observer = new MutationObserver(() => {
-    if (focusTarget()) observer.disconnect();
-});
-observer.observe(document.documentElement, { childList: true, subtree: true });
-
-window.addEventListener("load", () => { setTimeout(focusTarget, 200); }, { once: true });
-
-// SUREKLI checkbox'ını alt satıra taşı — sayfa dinamik yüklendiği için tekrar tekrar dene
-setTimeout(moveSurekliToNewLine, 300);
-setInterval(moveSurekliToNewLine, 1000);
+            const moveSurekliToNewLine = () => {
+                const sureklInput = document.getElementById('SUREKLI');
+                if (sureklInput && !sureklInput.dataset.ksBr) { sureklInput.dataset.ksBr = '1'; sureklInput.parentNode.insertBefore(document.createElement('br'), sureklInput); }
+            };
+            const init = () => {
+                if (typeof initPanel === 'function') initPanel();
+                setTimeout(() => { const checkTarget = document.getElementById("SUREKLI"); if (checkTarget && !checkTarget.checked) { checkTarget.click(); } }, 1000);
+            };
+            const focusTarget = () => {
+                const input = document.getElementById('tm_kod');
+                if (input) { input.focus(); input.select(); return true; }
+                return false;
+            };
+            if (document.readyState === "complete") init(); else unsafeWindow.addEventListener('load', init);
+            const observer = new MutationObserver(() => { if (focusTarget()) observer.disconnect(); });
+            observer.observe(document.documentElement, { childList: true, subtree: true });
+            window.addEventListener("load", () => { setTimeout(focusTarget, 200); }, { once: true });
+            // SUREKLI checkbox'ını alt satıra taşı — sayfa dinamik yüklendiği için tekrar tekrar dene
+            setTimeout(moveSurekliToNewLine, 300);
+            setInterval(moveSurekliToNewLine, 1000);
         }
         if (PSAY && loc("otohasar") && loc("eks_hasar_yedpar_yeni_ref.php")) {
             const patchAdet = () => {
@@ -7160,15 +7652,12 @@ setInterval(moveSurekliToNewLine, 1000);
               if (ms === null) return '-';
               if (ms === 0) return 'Boşluk yok';
               if (ms < 0) {
-                const absMs = Math.abs(ms);
-                const gun = Math.floor(absMs / 86400000);
-                const saat = Math.floor((absMs % 86400000) / 3600000);
+                const absMs = Math.abs(ms), gun = Math.floor(absMs / 86400000), saat = Math.floor((absMs % 86400000) / 3600000);
                 if (gun === 0) return `Çakışma (${saat} saat)`;
                 if (saat === 0) return `Çakışma (${gun} gün)`;
                 return `Çakışma (${gun} gün ${saat} saat)`;
               }
-              const gun = Math.floor(ms / 86400000);
-              const saat = Math.floor((ms % 86400000) / 3600000);
+              const gun = Math.floor(ms / 86400000), saat = Math.floor((ms % 86400000) / 3600000);
               if (gun === 0) return `${saat} saat boşluk`;
               if (saat === 0) return `${gun} gün boşluk`;
               return `${gun} gün ${saat} saat boşluk`;
@@ -7191,13 +7680,13 @@ setInterval(moveSurekliToNewLine, 1000);
               const idxZeyilTuru = findColumnIndex(headerCells, 'Zeyil Türü');
               const idxBaslama = findColumnIndex(headerCells, 'Poliçe Başlama Tarihi');
               const idxZeyilBaslama = findColumnIndex(headerCells, 'Zeyil Başlama Tarihi');
-              const idxSirket = findColumnIndex(headerCells, 'Sigorta Şirketi'); // YENİ: şirket takibi için
+              const idxSirket = findColumnIndex(headerCells, 'Sigorta Şirketi');
               if ([idxPoliceNo, idxYenilemeNo, idxZeyilNo, idxZeyilTuru, idxBaslama, idxZeyilBaslama, idxSirket].includes(-1)) { kslog("SBM",("Beklenen sütunlardan biri bulunamadı, script durduruldu.")); return; }
               const rows = bodyRows.map((tr) => {
                 const tds = Array.from(tr.children);
                 return {
                   tr,
-                  sirket: tds[idxSirket]?.textContent.trim() || '', // YENİ
+                  sirket: tds[idxSirket]?.textContent.trim() || '',
                   policeNo: tds[idxPoliceNo]?.textContent.trim() || '',
                   yenilemeNo: tds[idxYenilemeNo]?.textContent.trim() || '0',
                   zeyilNo: parseInt(tds[idxZeyilNo]?.textContent.trim() || '0', 10),
@@ -7217,14 +7706,10 @@ setInterval(moveSurekliToNewLine, 1000);
                 let efektifBitis = anaKayit.bitis;
                 if (iptalKaydi && iptalKaydi.zeyilBaslama) { efektifBitis = iptalKaydi.zeyilBaslama; }
                 policies.push({
-                  grupAnahtari,
-                  sirket: anaKayit.sirket, // YENİ
-                  efektifBaslama: anaKayit.baslama,
-                  efektifBitis,
+                  grupAnahtari, sirket: anaKayit.sirket, efektifBaslama: anaKayit.baslama, efektifBitis,
                   iptalNedeni: iptalKaydi ? iptalKaydi.zeyilTuru : null,
                   tamBaslangicIptal: iptalKaydi ? baslangicindanIptalMi(iptalKaydi.zeyilTuru) : false,
-                  gosterilecekTr: anaKayit.tr, // Değeri bu satıra yazacağız
-                  tumSatirlar: recs.map((r) => r.tr),
+                  gosterilecekTr: anaKayit.tr, tumSatirlar: recs.map((r) => r.tr),
                 });
               }
               const siraliPolice = policies.filter((p) => p.efektifBaslama && !p.tamBaslangicIptal).sort((a, b) => a.efektifBaslama - b.efektifBaslama);
@@ -7237,36 +7722,18 @@ setInterval(moveSurekliToNewLine, 1000);
                 const farkMetni = formatFark(fark);
                 const sirketDegisti = sonraki.sirket && mevcut.sirket && sonraki.sirket !== mevcut.sirket;
                 const parcalar = [];
-                if (farkMetni !== 'Boşluk yok') {
-                  parcalar.push(farkMetni);
-                  if (mevcut.iptalNedeni) { parcalar.push('İptal'); }
-                }
+                if (farkMetni !== 'Boşluk yok') { parcalar.push(farkMetni); if (mevcut.iptalNedeni) { parcalar.push('İptal'); } }
                 if (sirketDegisti) { parcalar.push('Şirket Değişti'); }
                 farklar.set(mevcut.grupAnahtari, parcalar.join(' - '));
               }
-              for (const p of policies) { if (p.tamBaslangicIptal) { farklar.set(p.grupAnahtari, `İptal edilmiş`);/* (${p.iptalNedeni})`); */} }
-              const AKTIF_RENK = '#c8e6c9'; // açık yeşil (koyu yeşil okunmuyordu)
-              const NORMAL_RENK = '#e3f2fd'; // açık mavi
+              for (const p of policies) { if (p.tamBaslangicIptal) { farklar.set(p.grupAnahtari, `İptal edilmiş`);} }
+              const AKTIF_RENK = '#c8e6c9';
+              const NORMAL_RENK = '#e3f2fd';
               const IPTAL_RENK = '#ffe9c7';
               const bugun = new Date();
               let aktifPolice = null;
-              for (const p of policies) {
-                // Sadece bugünün tarihi efektif başlama-bitiş aralığına denk geliyorsa aktif say.
-                // İptal edilmiş bir poliçenin efektifBitis'i iptal tarihine çekildiği için,
-                // bugün o tarihi geçtiyse artık aktif sayılmaz (yeşil+turuncu çakışması burada çözülüyor).
-                if (p.efektifBaslama && p.efektifBitis && p.efektifBaslama <= bugun && p.efektifBitis >= bugun) {
-                  if (!aktifPolice || p.efektifBaslama > aktifPolice.efektifBaslama) { aktifPolice = p; }
-                }
-              }
-              for (const p of policies) {
-                let renk;
-                if (p === aktifPolice) { renk = AKTIF_RENK; }
-                else if (p.iptalNedeni) { renk = IPTAL_RENK; }
-                else { renk = NORMAL_RENK; }
-                for (const tr of p.tumSatirlar) {
-                  tr.style.backgroundColor = renk;
-                }
-              }
+              for (const p of policies) { if (p.efektifBaslama && p.efektifBitis && p.efektifBaslama <= bugun && p.efektifBitis >= bugun) { if (!aktifPolice || p.efektifBaslama > aktifPolice.efektifBaslama) { aktifPolice = p; } } }
+              for (const p of policies) { let renk; if (p === aktifPolice) { renk = AKTIF_RENK; } else if (p.iptalNedeni) { renk = IPTAL_RENK; } else { renk = NORMAL_RENK; } for (const tr of p.tumSatirlar) { tr.style.backgroundColor = renk; } }
               const th = document.createElement('th');
               th.textContent = NEW_HEADER_TEXT;
               headerRow.insertBefore(th, headerCells[idxBitis].nextSibling);
