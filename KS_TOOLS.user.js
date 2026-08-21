@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         KS TOOLS PANEL
 // @namespace    KS_TOOLS_PANEL
-// @version      1.92
+// @version      1.93
 // @license      GPL-3.0
 // @description  OtoHasar Dinamik Form Panel / Parça - Manuel ve Çoklu ekleme / Donanim Panel / SBM Tramer no ayırma ve resim indirme / Wp resim indirme / Gelişmiş Hasar Analiz / PDF -> JPG Dönüştürme ve boyutlandırma
 // @author       Saygın
@@ -4442,6 +4442,16 @@
                     baslik: "Kontrol kaybı - karşı/yan şeritteki araca savrulma",
                     sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN [YOL ISLAKLIĞI/SÜRAT/HATALI MANEVRA] NEDENİYLE ARACIN KONTROLÜNÜ KAYBEDEREK [SAĞ/SOL] ŞERİDE SAVRULDUĞU, ARACININ [ÖN/YAN] KISMIYLA O ŞERİTTE SEYRETMEKTE OLAN ${v.md_plaka} PLAKALI ARACIN [ÖN/YAN/ARKA] KISMININ ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ANLAŞMA TUTANAĞINDA/EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
                 },
+				{
+                    kategori: "Kontrol Kaybı",
+                    baslik: "Seyir halindeyken tekerlek patlaması (tek taraflı)",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN ARACIN [SAĞ/SOL] [ÖN/ARKA] TEKERLEĞİNİN PATLAMASI NEDENİYLE DİREKSİYON HAKİMİYETİNİ KAYBETTİĞİ, SAVRULAN ARACIN [BARİYER/AĞAÇ/DUVAR/KALDIRIM] İLE ÇARPIŞMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
+                },
+				{
+                    kategori: "Kontrol Kaybı",
+                    baslik: "Tekerlek patlaması sonucu başka araca çarpma",
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN TEKERLEĞİNİN PATLAMASI SONUCU DİREKSİYON HAKİMİYETİNİ KAYBEDEREK [SAĞ/SOL] ŞERİDE SAVRULDUĞU VE O ŞERİTTE SEYREDEN ${v.md_plaka} PLAKALI ARACA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKLİ ${v.evrakTipi || "KAZA TESPİT TUTANAĞI"} İÇERİĞİNDE BELİRTİLMEKTEDİR.`
+                },
                 {
                     kategori: "Park & Manevra",
                     baslik: "Park halinden karayoluna çıkarken çarpışma",
@@ -4455,7 +4465,7 @@
                 {
                     kategori: "Cisim Çarpması",
                     baslik: "Araçtan düşen/fırlayan cismin çarpması",
-                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN, ÖNÜNDE SEYREDEN ${v.md_plaka} PLAKALI ARAÇTAN YOLA DÜŞEN/FIRLAYAN [CİSİM TÜRÜ] CİSMİN ARACININ [ÖN/ALT/YAN] KISMINA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
+                    sablon: v => `SAYIN ${v.surucu}; ${v.tarih} TARİHİNDE SAAT:${v.kazaSaati} SIRALARINDA ${v.anaplaka} PLAKALI ARAÇLA ${ilIlceIfadesi(v)} [CADDE/YOL/OTOBAN] ÜZERİNDE SEYİR HALİNDEYKEN, ÖNÜNDE SEYREDEN ${v.md_plaka} PLAKALI ARAÇTAN YOLA DÜŞEN/FIRLAYAN [CİSİM TÜRÜ] CİSMİN ARACININ [ÖN/ALT/ÜST/YAN] KISMINA ÇARPMASI NETİCESİ HASARIN MEYDANA GELDİĞİ EKSPERTİZ ÇALIŞMASI NETİCESİNDE TESPİT EDİLMİŞTİR.`
                 }
             ];
 
